@@ -29,7 +29,8 @@ Bazy dla naszej aplikacji dostępne są na domyślnych portach.
 
 
 ## CI/CD 
-Wszystkie pushowane zmiany są automatycznie testowane, a zmiany na branchu `main` są dodatkowo automatycznie uruchamiane na serwerze.
+Wszystkie pushowane zmiany są automatycznie testowane, a zmiany na branchu `main` są dodatkowo automatycznie uruchamiane na serwerze.  
+Wykonane testy można sprawdzić na githubie w widoku historii commitów lub w zakładce "Actions".
 
 
 ## TLDR
