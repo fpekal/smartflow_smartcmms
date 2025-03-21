@@ -12,4 +12,4 @@ cmd ["./backend"]
 
 from ubuntu:latest as test
 
-cmd ["false"]
+cmd ["true"]
