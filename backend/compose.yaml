@@ -1,0 +1,4 @@
+name: smartcmms-backend
+services:
+  backend:
+    image: smartcmms-backend:latest

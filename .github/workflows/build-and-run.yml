@@ -1,0 +1,26 @@
+name: Build and run backend
+
+on:
+  push:
+    branches: [ production ]
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build image
+        run: |
+          cd backend
+          docker build -t smartcmms-backend .
+
+  run:
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run docker compose
+        run: |
+          cd backend
+          docker compose down
+          docker compose up --detach
