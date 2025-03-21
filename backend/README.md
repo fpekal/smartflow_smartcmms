@@ -28,6 +28,10 @@ Bazy dla naszej aplikacji dostępne są na domyślnych portach.
 - everest.stream:27017 - MongoDB (do testów lokalnych na prawdziwej bazie danych)
 
 
+## CI/CD 
+Wszystkie pushowane zmiany są automatycznie testowane, a zmiany na branchu `main` są dodatkowo automatycznie uruchamiane na serwerze.
+
+
 ## TLDR
 Potrzebujecie biblioteki lub jakiegoś narzędzia? Dockerfile  
 Potrzebujecie dodatkowego działającego w tle programu? compose.yaml  
