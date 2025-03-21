@@ -1,0 +1,4 @@
+name: smartcmms-backend-test
+services:
+  test:
+    image: smartcmms-backend-test:latest
