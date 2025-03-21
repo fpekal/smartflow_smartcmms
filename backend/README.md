@@ -12,6 +12,13 @@
 - make down - wyłączenie bazy danych
 
 
+## Serwer
+- http://everest.stream:8088 - Adminer (gui do edycji PostreSQL)
+- http://everest.stream:8089 - Mongo Express (gui do edycji MongoDB)
+- http://everest.stream:5432 - PostgreSQL (do testów na prawdziwej bazie danych)
+- http://everest.stream:27017 - MongoDB (do testów na prawdziwej bazie danych)
+
+
 ## TLDR
 Potrzebujecie biblioteki lub jakiegoś narzędzia? Dockerfile  
 Potrzebujecie dodatkowego działającego w tle programu? compose.yaml  
