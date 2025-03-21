@@ -12,11 +12,20 @@
 - make down - wyłączenie bazy danych
 
 
+## Adresy baz danych
+Aplikacja powinna się łączyć z bazami danych używając nazw:
+- db - baza PostgreSQL
+- db-log - baza MongoDB
+
+Przykładowo uruchomienie `ping db-log` powinno powodować ping do kontenera z MongoDB.  
+Bazy dla naszej aplikacji dostępne są na domyślnych portach.
+
+
 ## Serwer
 - http://everest.stream:8088 - Adminer (gui do edycji PostreSQL)
 - http://everest.stream:8089 - Mongo Express (gui do edycji MongoDB)
-- http://everest.stream:5432 - PostgreSQL (do testów na prawdziwej bazie danych)
-- http://everest.stream:27017 - MongoDB (do testów na prawdziwej bazie danych)
+- http://everest.stream:5432 - PostgreSQL (do testów lokalnych na prawdziwej bazie danych)
+- http://everest.stream:27017 - MongoDB (do testów lokalnych na prawdziwej bazie danych)
 
 
 ## TLDR
