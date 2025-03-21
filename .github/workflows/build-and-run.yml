@@ -12,7 +12,7 @@ jobs:
       - name: Build image
         run: |
           cd backend
-          docker build -t smartcmms-backend .
+          docker build -t smartcmms-backend . --target build
 
   run:
     runs-on: self-hosted

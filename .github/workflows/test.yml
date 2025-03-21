@@ -1,0 +1,31 @@
+name: Test
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build test
+        run: |
+          cd backend
+          docker build -t smartcmms-backend-test . --target test
+
+  test:
+    runs-on: self-hosted
+    needs: build-test
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .env
+        run: |
+          cp backend/.env.test backend/.env
+      - name: Run docker compose
+        run: |
+          cd backend
+          docker compose -f compose-test.yaml down 
+          # docker compose -f compose-test.yaml up db db-log --detach ### run databases etc here
+          docker compose -f compose-test.yaml up test --exit-code-from test
+          docker compose -f compose-test.yaml down ### cleanup
