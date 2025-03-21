@@ -2,7 +2,7 @@ from ubuntu:latest as build
 
 run apt update && apt install -y g++ make
 copy . .
-run make
+run g++ -o backend main.cpp
 
 cmd ["./backend"]
 
