@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS users (
 	surname varchar(128) NOT NULL,
 	email varchar(128) NOT NULL,
 	hashed_pass varchar(64) NOT NULL,
-	role int NOT NULL, -- 0 osoba zewnętrzna; 1 technik; 2 kierownik budynku; 3 administrator
-	state int NOT NULL, -- 0 aktywne konto; 1 usunięte konto
+	role int NOT NULL, -- bit 0 - osoba zewnętrzna, bit 1 - technik, bit 2 - kierownik budynku, bit 3 - administrator
+	state int NOT NULL, -- bit 0 - czy konto jest usunięte (fałsz - aktywne, prawda - usunięte)
 
 	PRIMARY KEY (id)
 );
@@ -31,12 +31,11 @@ CREATE TABLE IF NOT EXISTS protocols_fields ( -- Pole do zaptaszkowania na proto
 	PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS protocols_filled ( -- Protokoły wypeniane/wypełnione przez technika
+CREATE TABLE IF NOT EXISTS protocols_filled ( -- Protokoły wypełniane/wypełnione przez technika
 	id int NOT NULL,
 	protocol_id varchar(16) NOT NULL,
 	user_id int NOT NULL, -- osoba, która wypełniła protokół
-	state int NOT NULL, -- 0 niewypełniony do końca, nadal można edytować; 1 wypełniony, brak możliwości edycji; 2 wypełniony i podpisany przez technika i odbiorcę
-	-- NOTE: Czy na pewno w stanie 1 nie powinno być możliwości edycji? Co, jak technik chce coś poprawić?
+	state int NOT NULL, -- bit 0 - czy w pełni wypełniony, bit 1 - czy podpisany przez technika, bit 2 - czy podpisany przez odbiorcę
 
 	notes varchar(4096) NOT NULL, -- notatki, które może dopisać technik. Wyniki pomiarów ilościowych itp.
 
