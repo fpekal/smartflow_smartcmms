@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS protocols_filled ( -- Protokoły wypeniane/wypełnion
 
 CREATE TABLE IF NOT EXISTS protocols_filled_fields (
 	id int NOT NULL,
-	protocol_filled_id varchar(16) NOT NULL,
+	protocol_filled_id int NOT NULL,
 	field_id int NOT NULL,
 	value boolean NOT NULL, -- 0 nie ma ptaszka; 1 jest ptaszek
 
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS protocols_filled_fields (
 
 CREATE TABLE IF NOT EXISTS protocol_sign (
 	id int NOT NULL,
-	protocol_filled_id varchar(16) NOT NULL,
+	protocol_filled_id int NOT NULL,
 
 	-- TODO: Jakieś dodatkowe dane o podpisie
 
