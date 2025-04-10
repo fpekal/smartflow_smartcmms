@@ -15,22 +15,23 @@ CREATE TABLE IF NOT EXISTS users (
 	PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS protocols {
+CREATE TABLE IF NOT EXISTS protocols (
 	id varchar(16) NOT NULL, -- np. 1.1.1 4.2.5
 	name varchar(256) NOT NULL,
 
 	PRIMARY KEY (id)
-};
+);
 
-CREATE TABLE IF NOT EXISTS protocols_fields { -- Pole do zaptaszkowania na protokole
+CREATE TABLE IF NOT EXISTS protocols_fields ( -- Pole do zaptaszkowania na protokole
 	id int NOT NULL,
 	protocol_id varchar(16) NOT NULL,
 	name varchar(256) NOT NULL,
 
-	FOREIGN KEY (protocol_id) REFERENCES protocols(id)
-};
+	FOREIGN KEY (protocol_id) REFERENCES protocols(id),
+	PRIMARY KEY (id)
+);
 
-CREATE TABLE IF NOT EXISTS protocols_filled { -- Protokoły wypeniane/wypełnione przez technika
+CREATE TABLE IF NOT EXISTS protocols_filled ( -- Protokoły wypeniane/wypełnione przez technika
 	id int NOT NULL,
 	protocol_id varchar(16) NOT NULL,
 	user_id int NOT NULL, -- osoba, która wypełniła protokół
@@ -40,34 +41,41 @@ CREATE TABLE IF NOT EXISTS protocols_filled { -- Protokoły wypeniane/wypełnion
 	notes varchar(4096) NOT NULL, -- notatki, które może dopisać technik. Wyniki pomiarów ilościowych itp.
 
 	FOREIGN KEY (protocol_id) REFERENCES protocols(id),
-	FOREIGN KEY (user_id) REFERENCES users(id)
-};
+	FOREIGN KEY (user_id) REFERENCES users(id),
+	PRIMARY KEY (id)
+);
 
-CREATE TABLE IF NOT EXISTS protocols_filled_fields {
+CREATE TABLE IF NOT EXISTS protocols_filled_fields (
 	id int NOT NULL,
 	protocol_filled_id varchar(16) NOT NULL,
 	field_id int NOT NULL,
 	value boolean NOT NULL, -- 0 nie ma ptaszka; 1 jest ptaszek
-	
+
 	FOREIGN KEY (protocol_filled_id) REFERENCES protocols_filled(id),
-	FOREIGN KEY (field_id) REFERENCES protocols_fields(id)
+	FOREIGN KEY (field_id) REFERENCES protocols_fields(id),
+	PRIMARY KEY (id)
 
 	-- TODO: CONSTRAINT żeby field_id i protocol_filled_id dotyczyło tego samego protokołu
 	-- CONSTRAINT CHK_protocols_filled_fields CHECK ()
-};
+);
 
-CREATE TABLE IF NOT EXISTS protocol_sign {
+CREATE TABLE IF NOT EXISTS protocol_sign (
 	id int NOT NULL,
-	protocol_id varchar(16) NOT NULL,
+	protocol_filled_id varchar(16) NOT NULL,
 
 	-- TODO: Jakieś dodatkowe dane o podpisie
 
-	FOREIGN KEY (protocol_id) REFERENCES protocols(id)
-};
+	FOREIGN KEY (protocol_filled_id) REFERENCES protocols_filled(id),
+	PRIMARY KEY (id)
+);
 
-CREATE TABLE IF NOT EXISTS schedules {
+CREATE TABLE IF NOT EXISTS schedules (
 	id int NOT NULL,
 	protocol_id varchar(16) NOT NULL,
-	interval int NOT NULL, -- Co ile tygodni będzie trzeba wypełnić ten protokół
 	user_id int NOT NULL, -- Technik, któremu wyświetli się powiadomienie, że musi wypełnić nowy protokół
-};
+	week_interval int NOT NULL, -- Co ile tygodni będzie trzeba wypełnić ten protokół
+
+	FOREIGN KEY (protocol_id) REFERENCES protocols(id),
+	FOREIGN KEY (user_id) REFERENCES users(id),
+	PRIMARY KEY (id)
+);
