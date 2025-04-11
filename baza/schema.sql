@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS protocols (
 	name varchar(256) NOT NULL,
 	author_id int NOT NULL, -- Osoba, która utworzyła dany protokół
 	state int NOT NULL, -- bit 0 - czy protokół jest obowiązujący (prawda - obowiązuje; fałsz - nieobowiązuje)
+	fields json NOT NULL, -- edytowalne pola w protokole zapisane jako json
 
 	FOREIGN KEY (author_id) REFERENCES users(id),
 	PRIMARY KEY (id)
@@ -46,15 +47,6 @@ CREATE TABLE IF NOT EXISTS protocols_change (
 	PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS protocols_fields ( -- Pole do zaptaszkowania na protokole
-	id int NOT NULL,
-	protocol_id varchar(16) NOT NULL,
-	name varchar(256) NOT NULL,
-
-	FOREIGN KEY (protocol_id) REFERENCES protocols(id),
-	PRIMARY KEY (id)
-);
-
 CREATE TABLE IF NOT EXISTS protocols_filled ( -- Protokoły wypeniane/wypełnione przez technika
 	id int NOT NULL,
 	protocol_id varchar(16) NOT NULL,
@@ -62,25 +54,11 @@ CREATE TABLE IF NOT EXISTS protocols_filled ( -- Protokoły wypeniane/wypełnion
 	state int NOT NULL, -- 0 niewypełniony do końca, nadal można edytować; 1 wypełniony, brak możliwości edycji; 2 wypełniony i podpisany przez technika i odbiorcę
 	-- NOTE: Czy na pewno w stanie 1 nie powinno być możliwości edycji? Co, jak technik chce coś poprawić?
 
-	notes varchar(4096) NOT NULL, -- notatki, które może dopisać technik. Wyniki pomiarów ilościowych itp.
+	fields json NOT NULL, -- wypełnione pola, razem z notatkami
 
 	FOREIGN KEY (protocol_id) REFERENCES protocols(id),
 	FOREIGN KEY (user_id) REFERENCES users(id),
 	PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS protocols_filled_fields (
-	id int NOT NULL,
-	protocol_filled_id int NOT NULL,
-	field_id int NOT NULL,
-	value boolean NOT NULL, -- 0 nie ma ptaszka; 1 jest ptaszek
-
-	FOREIGN KEY (protocol_filled_id) REFERENCES protocols_filled(id),
-	FOREIGN KEY (field_id) REFERENCES protocols_fields(id),
-	PRIMARY KEY (id)
-
-	-- TODO: CONSTRAINT żeby field_id i protocol_filled_id dotyczyło tego samego protokołu
-	-- CONSTRAINT CHK_protocols_filled_fields CHECK ()
 );
 
 CREATE TABLE IF NOT EXISTS protocol_sign (
