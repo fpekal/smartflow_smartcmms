@@ -29,7 +29,9 @@ CREATE TABLE IF NOT EXISTS users_change (
 CREATE TABLE IF NOT EXISTS protocols (
 	id varchar(16) NOT NULL, -- np. 1.1.1 4.2.5
 	name varchar(256) NOT NULL,
+	author_id int NOT NULL, -- Osoba, która utworzyła dany protokół
 
+	FOREIGN KEY (author_id) REFERENCES users(id),
 	PRIMARY KEY (id)
 );
 
