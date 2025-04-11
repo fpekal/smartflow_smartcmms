@@ -15,6 +15,17 @@ CREATE TABLE IF NOT EXISTS users (
 	PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS users_change (
+	id int NOT NULL,
+	user_id int NOT NULL,
+	new_role int, -- Nowa wartość, która będzie wpisana w pole `role` w tabeli `users`; NULL jeżeli bez zmian
+	new_state int, -- Nowa wartość, która będzie wpisana w pole `state` w tabeli `users`; NULL jeżeli bez zmian
+  commit_date date NOT NULL, -- Kiedy ta zmiana powinna zostać wdrożona do systemu
+
+	FOREIGN KEY (user_id) REFERENCES users(id),
+  PRIMARY KEY (id)
+);
+
 CREATE TABLE IF NOT EXISTS protocols (
 	id varchar(16) NOT NULL, -- np. 1.1.1 4.2.5
 	name varchar(256) NOT NULL,
