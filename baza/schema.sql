@@ -29,7 +29,20 @@ CREATE TABLE IF NOT EXISTS users_change (
 CREATE TABLE IF NOT EXISTS protocols (
 	id varchar(16) NOT NULL, -- np. 1.1.1 4.2.5
 	name varchar(256) NOT NULL,
+	author_id int NOT NULL, -- Osoba, która utworzyła dany protokół
+	state int NOT NULL, -- bit 0 - czy protokół jest obowiązujący (prawda - obowiązuje; fałsz - nieobowiązuje)
 
+	FOREIGN KEY (author_id) REFERENCES users(id),
+	PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS protocols_change (
+	id int NOT NULL,
+	protocol_id int NOT NULL,
+	new_state int, -- Nowa wartość, która będzie wpisana w pole `state` w tabeli `protocols`; NULL jeżeli bez zmian
+	commit_date date NOT NULL, -- Kiedy ta zmiana powinna zostać wdrożona do systemu
+
+	FOREIGN KEY (protocol_id) REFERENCES protocols(id),
 	PRIMARY KEY (id)
 );
 
