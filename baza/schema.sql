@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS protocols (
 
 CREATE TABLE IF NOT EXISTS protocols_change (
 	id int NOT NULL,
-	protocol_id int NOT NULL,
+	protocol_id varchar(16) NOT NULL,
 	new_state int, -- Nowa wartość, która będzie wpisana w pole `state` w tabeli `protocols`; NULL jeżeli bez zmian
 	commit_date date NOT NULL, -- Kiedy ta zmiana powinna zostać wdrożona do systemu
 
