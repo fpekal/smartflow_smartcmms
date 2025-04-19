@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS schedules (
 	protocol_id varchar(16) NOT NULL,
 	user_id int NOT NULL, -- Technik, któremu wyświetli się powiadomienie, że musi wypełnić nowy protokół
 	week_interval int NOT NULL, -- Co ile tygodni będzie trzeba wypełnić ten protokół
+	next date NOT NULL, -- Data następnego cyklicznego wypełniania protokołu
 
 	FOREIGN KEY (protocol_id) REFERENCES protocols(id),
 	FOREIGN KEY (user_id) REFERENCES users(id),
