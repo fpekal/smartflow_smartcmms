@@ -1,0 +1,32 @@
+#!/bin/sh
+# usage: surveys_to_json *.xls > surveys.json
+
+make_csvs() {
+  libreoffice --headless --convert-to csv --outdir "$CSV_DIR" "$@" >&2
+}
+
+make_json() {
+  cd "$CSV_DIR"
+  awk --csv '
+  /Lp.,Czynności serwisowe/ {
+   name=gensub(/\.csv$/, "", "g", FILENAME)
+   print "{\"name\": \"" name "\",\n\"activities\": ["
+   insert_comma=0; enable=1;next
+  }
+  enable && $1 ~ "^[0-9]+$" && $2 {
+    if(insert_comma) printf ","
+    else insert_comma=1
+    print "\""$2"\""; next
+  }
+  { enable=0 }
+  FNR != NR && f != FILENAME { print "]}"; f=FILENAME}
+  END { print "]}"}
+  ' *.csv | tr -d '\t' | jq '.' -s
+  # we use jq -s as a trick for turining stream of dicts into arr of dicts
+}
+
+CSV_DIR=$(mktemp -d)
+printf "TMPDIR for csv files: %s" "$1" >&2
+
+make_csvs "$@" && make_json && rm -rf "$CSV_DIR"
+# we only remove temp dir if everything went fine
