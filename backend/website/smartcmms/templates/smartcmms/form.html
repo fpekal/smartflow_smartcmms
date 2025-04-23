@@ -1,0 +1,198 @@
+{% for elem in elements %}
+  {% if not forloop.first %}/ {% endif %}
+  <label class="crossout"><input type="checkbox" name="sprawne">{{ elem }}</label>
+{% endfor %}
+{# TODO:
+- dodawanie wierszy
+- podpis
+- wybierarka obiektów
+- stylowańsko strony
+  - z nieintuicyjnych rzeczy: cała kulumna zawierająca radiobutton powinna być klikalna
+- stylowańśko pdfa
+#}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  <style>
+    .activity_radio {
+      display: block;
+      width:100%;
+      height:100%;
+      {# TODO: make whole table cell clickable #}
+      {# background: red; #}
+    }
+    .crossout {
+      display: inline;
+      font-weight: bold;
+      input[type="checkbox"] {
+        display: none;
+      }
+    }
+    .crossout:has(input[type="checkbox"]:checked) {
+        text-decoration: line-through;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2em;
+    }
+    table {
+      width: 100%;
+      {# border-collapse: collapse; #}
+    }
+    td, th {
+      border: 1px solid #ccc;
+      padding: 8px;
+    }
+    label {
+      display: block;
+    }
+  </style>
+  
+</head>
+<body>
+  <h1>{{ title }}</h1>
+  <form>
+      <table>
+          <tr>
+              <th><label for="building">Obiekt:</label></th>
+              <td><input type="text" id="building" name="building"></td>
+          </tr>
+          <tr>
+              <th><label for="address">Adres:</label></th>
+              <td><input type="text" id="address" name="address"></td>
+          </tr>
+          <tr>
+              <th><label for="device">Urządzenie / ilość:</label></th>
+              <td><input type="text" id="device" name="device"></td>
+          </tr>
+          <tr>
+              <th><label for="model">Producent / Typ / Numer seryjny:</label></th>
+              <td><input type="text" id="model" name="model"></td>
+          </tr>
+          <tr>
+              {# te id/nazwy są do dupy, ale nie chce mi się #}
+              <th><label for="localization">Lokalizacja urządzenia:</label></th>
+              <td><input type="text" id="localization" name="localization"></td>
+          </tr>
+          <tr>
+              <th><label for="survey_freq">Rodzaj przeglądu:</label></th>
+              <td>
+               <select id="survey_freq" name="survey_freq">
+                <option value="Roczny">Roczny</option>
+                <option value="Półroczny">Półroczny</option>
+                <option value="Miesięczny">Miesięczny</option>
+                <option value="n/a">N/A</option>
+               </select>
+              </td>
+          </tr>
+          <tr>
+              <th><label for="date">Data wykonania:</label></th>
+              <td><input type="date" id="date" name="date"></td>
+          </tr>
+      </table>
+
+      <table>
+      <thead>
+      <tr>
+      <th rowspan="2">Lp.</th>
+      <th rowspan="2">Czynności serwisowe</th>
+      <th rowspan="2">nie dotyczy</th>
+      <th colspan="2">wykonano</th>
+      <th rowspan="2">nie wykonano<br>(uzasadnić w uwagach)</th>
+      <th rowspan="2">komentarz</th>
+      </tr>
+      <tr>
+        <th>brak<br>uchybień</th>
+        <th>uwagi</th>
+      </tr>
+      </thead>
+      {% for row in activities %}
+      <tr>
+        <td><label for="q1">{{loop.index}}</label></td>
+        <td><label for="q1">{{row}}</label></td>
+        <td align="center">
+          <label class="activity_radio">
+            <input type="radio" name="activity_choice{{loop.index}}" value="nie_dotyczy">
+          </label>
+        </td>
+        <td align="center">
+          <label class="activity_radio">
+            <input type="radio" name="activity_choice{{loop.index}}" value="brak_uchybień">
+          </label>
+        </td>
+        <td align="center">
+          <label class="activity_radio">
+            <input type="radio" name="activity_choice{{loop.index}}" value="uwagi">
+          </label>
+        </td>
+        <td align="center">
+          <label class="activity_radio">
+            <input type="radio" name="activity_choice{{loop.index}}" value="nie_wykonano">
+          </label>
+        </td>
+        <td><textarea name="q1_comment"></textarea></td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <p>
+      W wyniku przeprowadzonego przeglądu stwierdzono:
+      <br>
+      Urządzenie
+      {% for item in status_options %}
+        {% if not forloop.first %} / {% endif %}
+        <label class="crossout"><input type="checkbox" name="sprawne">{{ item }}</label>
+      {% endfor %}
+      technicznie.
+      <br>
+      Urządzenie
+      {% for item in approval_options %}
+        {% if not forloop.first %} / {% endif %}
+        <label class="crossout"><input type="checkbox" name="dopuszczenie">{{ item }}</label>
+      {% endfor %}
+      do dalszej eksploatacji poza poniższymi usterkami.
+    </p>
+
+    <p>
+    <label for="uwagi">
+    Uwagi / Usterki / Zalecenia:
+    </label>
+    <textarea name="uwagi"></textarea>
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Lp.</th>
+          <th>Nazwa urządzenia</th>
+          <th>Producent</th>
+          <th>Typ/model</th>
+          <th>Data ważności kalibracji</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1.</td>
+          <td><input type="text"></td>
+          <td><input type="text"></td>
+          <td><input type="text"></td>
+          <td><input type="text"></td>
+        </tr>
+        <tr>
+          <td>2.</td>
+          <td><input type="text"></td>
+          <td><input type="text"></td>
+          <td><input type="text"></td>
+          <td><input type="text"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    {# <button type="submit" onclick="window.print(); return false;">Print Form</button> #}
+  </form>
+</body>
+</html>
+
+
