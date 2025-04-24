@@ -22,13 +22,14 @@ Bazy dla naszej aplikacji dostępne są na domyślnych portach.
 
 
 ## Serwer
+- https://smartcmms.everest.stream - Backend
 - http://everest.stream:8088 - Adminer (gui do edycji PostreSQL)
 - http://everest.stream:8089 - Mongo Express (gui do edycji MongoDB)
 - everest.stream:5432 - PostgreSQL (do testów lokalnych na prawdziwej bazie danych)
 - everest.stream:27017 - MongoDB (do testów lokalnych na prawdziwej bazie danych)
 
 
-## CI/CD 
+## CI/CD
 Wszystkie pushowane zmiany są automatycznie testowane, a zmiany na branchu `main` są dodatkowo automatycznie uruchamiane na serwerze.  
 Wykonane testy można sprawdzić na githubie w widoku historii commitów lub w zakładce "Actions".
 
