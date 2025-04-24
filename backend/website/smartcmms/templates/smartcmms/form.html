@@ -108,33 +108,33 @@
         <th>uwagi</th>
       </tr>
       </thead>
-      {% for row in activities %}
-      <tr>
-        <td><label for="q1">{{loop.index}}</label></td>
-        <td><label for="q1">{{row}}</label></td>
-        <td align="center">
-          <label class="activity_radio">
-            <input type="radio" name="activity_choice{{loop.index}}" value="nie_dotyczy">
-          </label>
-        </td>
-        <td align="center">
-          <label class="activity_radio">
-            <input type="radio" name="activity_choice{{loop.index}}" value="brak_uchybień">
-          </label>
-        </td>
-        <td align="center">
-          <label class="activity_radio">
-            <input type="radio" name="activity_choice{{loop.index}}" value="uwagi">
-          </label>
-        </td>
-        <td align="center">
-          <label class="activity_radio">
-            <input type="radio" name="activity_choice{{loop.index}}" value="nie_wykonano">
-          </label>
-        </td>
-        <td><textarea name="q1_comment"></textarea></td>
-      </tr>
-      {% endfor %}
+    {% for row in activities %}
+    <tr>
+      <td><label for="q{{ forloop.counter }}">{{ forloop.counter }}</label></td>
+      <td><label for="q{{ forloop.counter }}">{{ row }}</label></td>
+      <td align="center">
+        <label class="activity_radio">
+          <input type="radio" name="activity_choice{{ forloop.counter }}" value="nie_dotyczy">
+        </label>
+      </td>
+      <td align="center">
+        <label class="activity_radio">
+          <input type="radio" name="activity_choice{{ forloop.counter }}" value="brak_uchybień">
+        </label>
+      </td>
+      <td align="center">
+        <label class="activity_radio">
+          <input type="radio" name="activity_choice{{ forloop.counter }}" value="uwagi">
+        </label>
+      </td>
+      <td align="center">
+        <label class="activity_radio">
+          <input type="radio" name="activity_choice{{ forloop.counter }}" value="nie_wykonano">
+        </label>
+      </td>
+      <td><textarea name="q{{ forloop.counter }}_comment"></textarea></td>
+    </tr>
+    {% endfor %}
     </table>
 
     <p>
@@ -143,17 +143,35 @@
       Urządzenie
       {% for item in status_options %}
         {% if not forloop.first %} / {% endif %}
-        <label class="crossout"><input type="checkbox" name="sprawne">{{ item }}</label>
+        <label class="crossout">
+          <input type="radio" name="status" value="{{ item }}">{{ item }}
+        </label>
       {% endfor %}
       technicznie.
       <br>
       Urządzenie
       {% for item in approval_options %}
         {% if not forloop.first %} / {% endif %}
-        <label class="crossout"><input type="checkbox" name="dopuszczenie">{{ item }}</label>
+        <label class="crossout">
+          <input type="radio" name="approval" value="{{ item }}">{{ item }}
+        </label>
       {% endfor %}
       do dalszej eksploatacji poza poniższymi usterkami.
     </p>
+
+    {% for activity in activities %}
+  <p>
+    {{ activity.name }}
+    {% for option in activity.options %}
+      {% if not forloop.first %} / {% endif %}
+      <label class="crossout">
+        <input type="radio" name="activity_choice_{{ forloop.parentloop.counter }}" value="{{ option }}">
+        {{ option }}
+      </label>
+    {% endfor %}
+  </p>
+{% endfor %}
+
 
     <p>
     <label for="uwagi">
