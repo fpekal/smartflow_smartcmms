@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import Http404
+from .models import Form
 
 
 forms = [
@@ -300,12 +301,13 @@ forms = [
 
 
 def form_view(request, form_idx):
-    form = forms[int(form_idx)]
+    form = get_object_or_404(Form, id=form_idx)
+    activities = form.activities.all()
 
     return render(request, "smartcmms/form.html", {
-        'form_id': form_idx,
-        'title': form['name'],
-        'activities': form['activities'],
+        'form_id': form.id,
+        'title': form.name,
+        'activities': [activity.name for activity in activities],
         "status_options": ["sprawne", "niesprawne"],
         "approval_options": ["dopuszczone", "niedopuszczone"],
     })
