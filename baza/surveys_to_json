@@ -2,12 +2,12 @@
 # usage: surveys_to_json *.xls > surveys.json
 
 make_csvs() {
-	libreoffice --headless --convert-to csv --outdir "$CSV_DIR" "$@" >&2
+  libreoffice --headless --convert-to csv --outdir "$CSV_DIR" "$@" >&2
 }
 
 make_json() {
-	cd "$CSV_DIR"
-	awk --csv '
+  cd "$CSV_DIR"
+  awk --csv '
   /Lp.,Czynności serwisowe/ {
    name=gensub(/\.csv$/, "", "g", FILENAME)
    print "{\"name\": \"" name "\",\n\"activities\": ["
@@ -20,9 +20,9 @@ make_json() {
   }
   { enable=0 }
   FNR != NR && f != FILENAME { print "]}"; f=FILENAME}
-  END { print "}"}
+  END { print "]}"}
   ' *.csv | tr -d '\t' | jq '.' -s
-	# we use jq -s as a trick for turining stream of dicts into arr of dicts
+  # we use jq -s as a trick for turining stream of dicts into arr of dicts
 }
 
 CSV_DIR=$(mktemp -d)
