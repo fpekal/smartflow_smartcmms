@@ -1,10 +1,9 @@
 <template>
-  Zrobić tutaj cos
-  <!-- <v-app>
+  <v-app>
     <v-main>
       <router-view />
     </v-main>
-  </v-app> -->
+  </v-app>
 </template>
 
 <script setup>
