@@ -30,9 +30,9 @@
     .crossout {
       display: inline;
       font-weight: bold;
-      input[type="checkbox"] {
-        display: none;
-      }
+    }
+    .crossout input[type="checkbox"] {
+      display: none;
     }
     .crossout:has(input[type="checkbox"]:checked) {
         text-decoration: line-through;
@@ -52,47 +52,76 @@
     label {
       display: block;
     }
+    .button-container {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .print-button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .print-button:hover {
+      background-color: #45a049;
+    }
+    @media print {
+      .button-container {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
   <h1>{{ title }}</h1>
-  <form>
+  {% if print_mode is defined and print_mode %}
+  {# No form tag needed in print mode #}
+  {% else %}
+  <form id="serviceForm" action="/print_pdf/{{ form_id }}" method="post">
+  {% endif %}
       <table>
           <tr>
               <th><label for="building">Obiekt:</label></th>
-              <td><input type="text" id="building" name="building"></td>
+              <td><input type="text" id="building" name="building" value="{{ form_data.get('building', '') if form_data is defined else '' }}"></td>
           </tr>
           <tr>
               <th><label for="address">Adres:</label></th>
-              <td><input type="text" id="address" name="address"></td>
+              <td><input type="text" id="address" name="address" value="{{ form_data.get('address', '') if form_data is defined else '' }}"></td>
           </tr>
           <tr>
               <th><label for="device">Urządzenie / ilość:</label></th>
-              <td><input type="text" id="device" name="device"></td>
+              <td><input type="text" id="device" name="device" value="{{ form_data.get('device', '') if form_data is defined else '' }}"></td>
           </tr>
           <tr>
               <th><label for="model">Producent / Typ / Numer seryjny:</label></th>
-              <td><input type="text" id="model" name="model"></td>
+              <td><input type="text" id="model" name="model" value="{{ form_data.get('model', '') if form_data is defined else '' }}"></td>
           </tr>
           <tr>
               {# te id/nazwy są do dupy, ale nie chce mi się #}
               <th><label for="localization">Lokalizacja urządzenia:</label></th>
-              <td><input type="text" id="localization" name="localization"></td>
+              <td><input type="text" id="localization" name="localization" value="{{ form_data.get('localization', '') if form_data is defined else '' }}"></td>
           </tr>
           <tr>
               <th><label for="survey_freq">Rodzaj przeglądu:</label></th>
               <td>
                <select id="survey_freq" name="survey_freq">
-                <option value="Roczny">Roczny</option>
-                <option value="Półroczny">Półroczny</option>
-                <option value="Miesięczny">Miesięczny</option>
-                <option value="n/a">N/A</option>
+                <option value="Roczny" {% if form_data is defined and form_data.get('survey_freq') == 'Roczny' %}selected{% endif %}>Roczny</option>
+                <option value="Półroczny" {% if form_data is defined and form_data.get('survey_freq') == 'Półroczny' %}selected{% endif %}>Półroczny</option>
+                <option value="Miesięczny" {% if form_data is defined and form_data.get('survey_freq') == 'Miesięczny' %}selected{% endif %}>Miesięczny</option>
+                <option value="n/a" {% if form_data is defined and form_data.get('survey_freq') == 'n/a' %}selected{% endif %}>N/A</option>
                </select>
               </td>
           </tr>
           <tr>
               <th><label for="date">Data wykonania:</label></th>
-              <td><input type="date" id="date" name="date"></td>
+              <td><input type="date" id="date" name="date" value="{{ form_data.get('date', '') if form_data is defined else '' }}"></td>
           </tr>
       </table>
 
@@ -113,29 +142,33 @@
       </thead>
       {% for row in activities %}
       <tr>
-        <td><label for="q1">{{loop.index}}</label></td>
-        <td><label for="q1">{{row}}</label></td>
+        <td><label for="q{{loop.index}}">{{loop.index}}</label></td>
+        <td><label for="q{{loop.index}}">{{row}}</label></td>
         <td align="center">
           <label class="activity_radio">
-            <input type="radio" name="activity_choice{{loop.index}}" value="nie_dotyczy">
+            <input type="radio" name="activity_choice{{loop.index}}" value="nie_dotyczy"
+                   {% if form_data is defined and form_data.get('activity_choice'~loop.index) == 'nie_dotyczy' %}checked{% endif %}>
           </label>
         </td>
         <td align="center">
           <label class="activity_radio">
-            <input type="radio" name="activity_choice{{loop.index}}" value="brak_uchybień">
+            <input type="radio" name="activity_choice{{loop.index}}" value="brak_uchybień"
+                   {% if form_data is defined and form_data.get('activity_choice'~loop.index) == 'brak_uchybień' %}checked{% endif %}>
           </label>
         </td>
         <td align="center">
           <label class="activity_radio">
-            <input type="radio" name="activity_choice{{loop.index}}" value="uwagi">
+            <input type="radio" name="activity_choice{{loop.index}}" value="uwagi"
+                   {% if form_data is defined and form_data.get('activity_choice'~loop.index) == 'uwagi' %}checked{% endif %}>
           </label>
         </td>
         <td align="center">
           <label class="activity_radio">
-            <input type="radio" name="activity_choice{{loop.index}}" value="nie_wykonano">
+            <input type="radio" name="activity_choice{{loop.index}}" value="nie_wykonano"
+                   {% if form_data is defined and form_data.get('activity_choice'~loop.index) == 'nie_wykonano' %}checked{% endif %}>
           </label>
         </td>
-        <td><textarea name="q1_comment"></textarea></td>
+        <td><textarea name="q{{loop.index}}_comment">{{ form_data.get('q'~loop.index~'_comment', '') if form_data is defined else '' }}</textarea></td>
       </tr>
       {% endfor %}
     </table>
@@ -143,16 +176,36 @@
     <p>
       W wyniku przeprowadzonego przeglądu stwierdzono:
       <br>
-      Urządzenie {{ crossout("sprawne", "niesprawne") }} technicznie.
+      Urządzenie 
+      <label class="crossout">
+        <input type="checkbox" name="sprawne" value="sprawne" 
+               {% if form_data is defined and 'sprawne' in form_data %}checked{% endif %}>sprawne
+      </label>
+      /
+      <label class="crossout">
+        <input type="checkbox" name="niesprawne" value="niesprawne"
+               {% if form_data is defined and 'niesprawne' in form_data %}checked{% endif %}>niesprawne
+      </label>
+      technicznie.
       <br>
-      Urządzenie {{ crossout("dopuszczone", "niedopuszczone") }} do dalszej eksploatacji poza poniższymi usterkami.
+      Urządzenie 
+      <label class="crossout">
+        <input type="checkbox" name="dopuszczone" value="dopuszczone"
+               {% if form_data is defined and 'dopuszczone' in form_data %}checked{% endif %}>dopuszczone
+      </label>
+      /
+      <label class="crossout">
+        <input type="checkbox" name="niedopuszczone" value="niedopuszczone"
+               {% if form_data is defined and 'niedopuszczone' in form_data %}checked{% endif %}>niedopuszczone
+      </label>
+      do dalszej eksploatacji poza poniższymi usterkami.
     </p>
 
     <p>
     <label for="uwagi">
     Uwagi / Usterki / Zalecenia:
     </label>
-    <textarea name="uwagi"></textarea>
+    <textarea name="uwagi" id="uwagi" rows="4" style="width: 100%;">{{ form_data.get('uwagi', '') if form_data is defined else '' }}</textarea>
     </p>
 
     <table>
@@ -168,24 +221,48 @@
       <tbody>
         <tr>
           <td>1.</td>
-          <td><input type="text"></td>
-          <td><input type="text"></td>
-          <td><input type="text"></td>
-          <td><input type="text"></td>
+          <td><input type="text" name="tool_name_1" value="{{ form_data.get('tool_name_1', '') if form_data is defined else '' }}"></td>
+          <td><input type="text" name="tool_manufacturer_1" value="{{ form_data.get('tool_manufacturer_1', '') if form_data is defined else '' }}"></td>
+          <td><input type="text" name="tool_model_1" value="{{ form_data.get('tool_model_1', '') if form_data is defined else '' }}"></td>
+          <td><input type="text" name="tool_calibration_1" value="{{ form_data.get('tool_calibration_1', '') if form_data is defined else '' }}"></td>
         </tr>
         <tr>
           <td>2.</td>
-          <td><input type="text"></td>
-          <td><input type="text"></td>
-          <td><input type="text"></td>
-          <td><input type="text"></td>
+          <td><input type="text" name="tool_name_2" value="{{ form_data.get('tool_name_2', '') if form_data is defined else '' }}"></td>
+          <td><input type="text" name="tool_manufacturer_2" value="{{ form_data.get('tool_manufacturer_2', '') if form_data is defined else '' }}"></td>
+          <td><input type="text" name="tool_model_2" value="{{ form_data.get('tool_model_2', '') if form_data is defined else '' }}"></td>
+          <td><input type="text" name="tool_calibration_2" value="{{ form_data.get('tool_calibration_2', '') if form_data is defined else '' }}"></td>
         </tr>
       </tbody>
     </table>
 
-    {# <button type="submit" onclick="window.print(); return false;">Print Form</button> #}
-  </form>
+    {% if print_mode is defined and print_mode %}
+    {# No buttons in print mode #}
+    {% else %}
+    <div class="button-container">
+      <button type="submit" class="print-button">Generuj PDF</button>
+      <button type="button" class="print-button" onclick="window.print();">Drukuj stronę</button>
+    </div>
+    </form>
+    {% endif %}
+
+  <script>
+    // Make the table cells with radio buttons fully clickable
+    document.addEventListener('DOMContentLoaded', function() {
+      const radioCells = document.querySelectorAll('td:has(.activity_radio)');
+      radioCells.forEach(cell => {
+        cell.addEventListener('click', function(e) {
+          // If the click was directly on the cell (not on the radio or label)
+          if (e.target === cell) {
+            // Find the radio input within this cell and click it
+            const radio = cell.querySelector('input[type="radio"]');
+            if (radio) {
+              radio.checked = true;
+            }
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>
-
-
