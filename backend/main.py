@@ -136,6 +136,7 @@ def print_pdf(form_idx):
     subprocess.run([
         'chromium',
         '--headless',
+        '--no-pdf-header-footer',
         '--disable-gpu',
         '--print-to-pdf=' + pdf_path,
         'file://' + temp_html_path
