@@ -8,8 +8,8 @@ make_csvs() {
 make_json() {
   cd "$CSV_DIR"
   awk --csv '
+  /Urządzenie \/ ilość/ { name = $5 }
   /Lp.,Czynności serwisowe/ {
-   name=gensub(/\.csv$/, "", "g", FILENAME)
    print "{\"name\": \"" name "\",\n\"activities\": ["
    insert_comma=0; enable=1;next
   }
