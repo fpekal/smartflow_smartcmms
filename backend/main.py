@@ -9,6 +9,7 @@ import time
 import uuid
 import psycopg2
 import psycopg2.extras
+from api_reports import api_reports
 
 
 app = Flask(__name__)
@@ -188,6 +189,8 @@ def index():
     forms = get_forms()
     print("Forms available in index:", [f['id'] for f in forms])
     return render_template("index.html.jinja", forms=forms)
+
+app.register_blueprint(api_reports)
 
 
 if __name__ == "__main__":
