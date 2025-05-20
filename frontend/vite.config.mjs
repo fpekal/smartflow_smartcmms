@@ -59,6 +59,10 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+		allowedHosts: [
+			'everest',
+			'smartcmms.everest.stream',
+		],
   },
   css: {
     preprocessorOptions: {
