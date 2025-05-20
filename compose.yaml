@@ -11,6 +11,8 @@ services:
       - db_data:/var/lib/postgresql/data
     ports:
       - 5432:5432 # for testing purposes
+    networks:
+      - backend
   db-log:
     image: mongodb/mongodb-community-server
     restart: always
@@ -21,11 +23,15 @@ services:
       - db-log_data:/data/db
     ports:
       - 27017:27017 # for testing purposes
+    networks:
+      - backend
   adminer:
     image: adminer
     restart: always
     ports:
       - 8088:8080
+    networks:
+      - backend
   mongo-express:
     image: mongo-express
     restart: always
@@ -37,12 +43,28 @@ services:
       ME_CONFIG_MONGODB_SERVER: db-log
     ports:
       - 8089:8081
+    networks:
+      - backend
+    links:
+      - "db-log:mongo"
   backend:
     image: smartcmms-backend:latest
     ports:
       - 5000:5000
     environment:
       FLASK_RUN_HOST: 0.0.0.0
+    networks:
+      - backend
+  frontend:
+    image: smartcmms-frontend:latest
+    ports:
+      - 5001:3000
+    networks:
+      - frontend
+
+networks:
+  backend:
+  frontend:
 
 volumes:
   db_data:
