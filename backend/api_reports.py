@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, render_template, abort, request
 
-api_reports = Blueprint('api_reports', __name__, url_prefix='/api/reports')
+api_reports = Blueprint('api_reports', __name__, url_prefix='/reports')
 
 REPORT_TYPES = [
     {
