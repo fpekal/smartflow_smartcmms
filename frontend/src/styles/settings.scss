@@ -1,0 +1,28 @@
+/**
+ * src/styles/settings.scss
+ *
+ * Configures SASS variables and Vuetify overwrites
+ */
+
+// https://vuetifyjs.com/features/sass-variables/`
+// @use 'vuetify/settings' with (
+//   $color-pack: false
+// );
+
+:root {
+    --arsdeepblue: #003264;
+    --arslightblue: #0057AD;
+    --arsgreen: #4EB039;
+    --lightgreen: #59B446;
+    --lightgray: #8F8F8F;
+    --lightlightgray: #C4C4C4;
+    --whitegray: #E3E3E3;
+    --darkgray: #444444;
+
+    --white: #FFFFFF;
+}
+
+body {
+    background-color: var(--white);
+    color: black;
+}
