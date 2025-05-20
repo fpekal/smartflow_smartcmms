@@ -5,22 +5,30 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  build-backend:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
-      - name: Build image
+      - name: Build backend
         run: |
           docker build -t smartcmms-backend . -f backend/Dockerfile --target build
+  build-frontend:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build frontend
+        run: |
+          docker build -t smartcmms-frontend . -f frontend/Dockerfile
 
   run:
     runs-on: self-hosted
-    needs: build
+    needs:
+      - build-backend
+      - build-frontend
     steps:
       - uses: actions/checkout@v3
       - name: Setup .env
         run: |
-          cd backend
           echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
           echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
@@ -28,6 +36,5 @@ jobs:
           echo "MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}" >> .env
       - name: Run docker compose
         run: |
-          cd backend
           docker compose down
           docker compose up --detach
