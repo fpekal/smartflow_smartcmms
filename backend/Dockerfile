@@ -5,7 +5,7 @@ workdir /app
 copy . .
 run /bin/bash -c "python3 -m venv . && source ./bin/activate && pip install -r ./backend/requirements.txt"
 
-cmd ["/bin/bash", "-c", "source ./bin/activate && flask --app ./backend/main.py run"]
+CMD ["/bin/bash", "-c", "source ./bin/activate && flask --app ./backend/main.py run --debug"]
 
 
 
