@@ -15,9 +15,9 @@ from api_reports import api_reports
 app = Flask(__name__)
 
 DB_PARAMS = {
-    'dbname': 'test',
-    'user': 'test',
-    'password': 'test',
+    'dbname': os.environ.get('POSTGRES_DB', 'test'),
+    'user': os.environ.get('POSTGRES_USER', 'test'),
+    'password': os.environ.get('POSTGRES_PASSWORD', 'test'),
     'host': 'db'
 }
 
