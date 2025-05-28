@@ -176,7 +176,7 @@ def init_db():
     conn.close()
 
 
-@app.route('/api/protocols', methods=['GET'])
+@app.route('/protocols', methods=['GET'])
 def get_protocols():
     """Get all active protocols"""
     conn = get_db_connection()
@@ -211,7 +211,7 @@ def get_protocols():
     })
 
 
-@app.route('/api/protocols/<protocol_id>', methods=['GET'])
+@app.route('/protocols/<protocol_id>', methods=['GET'])
 def get_protocol(protocol_id):
     """Get specific protocol by ID"""
     conn = get_db_connection()
@@ -259,7 +259,7 @@ def get_protocol(protocol_id):
 #     ]
 #   }
 # }
-@app.route('/api/protocols', methods=['POST'])
+@app.route('/protocols', methods=['POST'])
 def create_protocol():
     """Create new protocol"""
     data = request.get_json()
@@ -299,7 +299,7 @@ def create_protocol():
     }), 201
 
 
-@app.route('/api/protocols/<protocol_id>', methods=['DELETE'])
+@app.route('/protocols/<protocol_id>', methods=['DELETE'])
 def delete_protocol(protocol_id):
     """Delete protocol (set state bit 0 to 0)"""
     conn = get_db_connection()
@@ -327,7 +327,7 @@ def delete_protocol(protocol_id):
     })
 
 
-@app.route('/api/protocols-filled', methods=['GET'])
+@app.route('/protocols-filled', methods=['GET'])
 def get_protocols_filled():
     """Get all filled protocols"""
     conn = get_db_connection()
@@ -388,7 +388,7 @@ def get_protocols_filled():
     })
 
 
-@app.route('/api/protocols-filled/<int:filled_id>', methods=['GET'])
+@app.route('/protocols-filled/<int:filled_id>', methods=['GET'])
 def get_protocol_filled(filled_id):
     """Get specific filled protocol by ID"""
     conn = get_db_connection()
@@ -443,7 +443,7 @@ def get_protocol_filled(filled_id):
 #     }
 #   }
 # }
-@app.route('/api/protocols-filled', methods=['POST'])
+@app.route('/protocols-filled', methods=['POST'])
 def create_protocol_filled():
     """Create new filled protocol"""
     data = request.get_json()
