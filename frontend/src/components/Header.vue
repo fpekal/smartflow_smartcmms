@@ -7,7 +7,7 @@
         </div>
         <div class="buttons-div">
             <RouterLink to="/"><v-btn class="button">Pulpit</v-btn></RouterLink>
-            <RouterLink to="/protokoly"><v-btn class="button">Protokoły</v-btn></RouterLink>
+            <RouterLink to="/protocols"><v-btn class="button">Protokoły</v-btn></RouterLink>
             <RouterLink to="/przeglady"><v-btn class="button">Przeglądy</v-btn></RouterLink>
         </div>
     </div>
