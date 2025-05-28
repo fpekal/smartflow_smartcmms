@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from flask import Flask, render_template, abort, send_file, request, redirect, \
-    url_for
+    url_for, jsonify
 import json
 import tempfile
 import os
@@ -9,6 +9,7 @@ import time
 import uuid
 import psycopg2
 import psycopg2.extras
+from datetime import datetime
 from api_reports import api_reports
 
 
@@ -21,14 +22,20 @@ DB_PARAMS = {
     'host': 'db'
 }
 
+CURRENT_USER_ID = 1
+
+def get_db_connection():
+    conn = psycopg2.connect(**DB_PARAMS)
+    return conn
+
+
+def dict_cursor(conn):
+    return conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
 
 def init_db():
     conn = psycopg2.connect(**DB_PARAMS)
     cur = conn.cursor()
-
-    import sys
-    print("INITTTTT")
-    print("INITTTTTTER", file=sys.stderr)
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users (
@@ -150,7 +157,7 @@ def init_db():
         
         cur.execute("""
             INSERT INTO protocols (id, name, author_id, state, fields)
-            VALUES ('1.1', '1.1 Przegląd statku meteorologicznego v1', 1, 1, %s)
+            VALUES ('1', '1.1 Przegląd statku meteorologicznego v1', 1, 1, %s)
             ON CONFLICT DO NOTHING
         """, (fields_json,))
     
@@ -167,6 +174,320 @@ def init_db():
         print(f"ID: {p[0]}, Name: {p[1]}")
     cur.close()
     conn.close()
+
+
+@app.route('/api/protocols', methods=['GET'])
+def get_protocols():
+    """Get all active protocols"""
+    conn = get_db_connection()
+    cur = dict_cursor(conn)
+
+    cur.execute("""
+        SELECT p.id, p.name, p.author_id, p.state, p.fields, u.name as author_name, u.surname as author_surname
+        FROM protocols p
+        JOIN users u ON p.author_id = u.id
+        WHERE (p.state & 1) = 1
+        ORDER BY p.id
+    """)
+
+    protocols = []
+    for row in cur.fetchall():
+        protocols.append({
+            'id': row['id'],
+            'name': row['name'],
+            'author_id': row['author_id'],
+            'author_name': f"{row['author_name']} {row['author_surname']}",
+            'state': row['state'],
+            'fields': row['fields']
+        })
+
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        'success': True,
+        'data': protocols,
+        'count': len(protocols)
+    })
+
+
+@app.route('/api/protocols/<protocol_id>', methods=['GET'])
+def get_protocol(protocol_id):
+    """Get specific protocol by ID"""
+    conn = get_db_connection()
+    cur = dict_cursor(conn)
+
+    cur.execute("""
+        SELECT p.id, p.name, p.author_id, p.state, p.fields, u.name as author_name, u.surname as author_surname
+        FROM protocols p
+        JOIN users u ON p.author_id = u.id
+        WHERE p.id = %s AND (p.state & 1) = 1
+    """, (protocol_id,))
+
+    row = cur.fetchone()
+    if not row:
+        cur.close()
+        conn.close()
+        return jsonify({'success': False, 'error': 'Protocol not found'}), 404
+
+    protocol = {
+        'id': row['id'],
+        'name': row['name'],
+        'author_id': row['author_id'],
+        'author_name': f"{row['author_name']} {row['author_surname']}",
+        'state': row['state'],
+        'fields': row['fields']
+    }
+
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        'success': True,
+        'data': protocol
+    })
+
+
+# Example json it takes:
+# {
+#   "id": "2",
+#   "name": "Safety Check Protocol",
+#   "fields": {
+#     "activities": [
+#       "Check fire extinguisher",
+#       "Test emergency alarm"
+#     ]
+#   }
+# }
+@app.route('/api/protocols', methods=['POST'])
+def create_protocol():
+    """Create new protocol"""
+    data = request.get_json()
+
+    if not data or 'id' not in data or 'name' not in data or 'fields' not in data:
+        return jsonify({'success': False, 'error': 'Missing required fields: id, name, fields'}), 400
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # Check if protocol ID already exists
+    cur.execute("SELECT id FROM protocols WHERE id = %s", (data['id'],))
+    if cur.fetchone():
+        cur.close()
+        conn.close()
+        return jsonify({'success': False, 'error': 'Protocol ID already exists'}), 409
+
+    cur.execute("""
+        INSERT INTO protocols (id, name, author_id, state, fields)
+        VALUES (%s, %s, %s, %s, %s)
+    """, (
+        data['id'],
+        data['name'],
+        CURRENT_USER_ID,
+        data.get('state', 1),
+        json.dumps(data['fields'])
+    ))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        'success': True,
+        'message': 'Protocol created successfully',
+        'data': {'id': data['id']}
+    }), 201
+
+
+@app.route('/api/protocols/<protocol_id>', methods=['DELETE'])
+def delete_protocol(protocol_id):
+    """Delete protocol (set state bit 0 to 0)"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # Check if protocol exists
+    cur.execute("SELECT id, state FROM protocols WHERE id = %s", (protocol_id,))
+    result = cur.fetchone()
+    if not result:
+        cur.close()
+        conn.close()
+        return jsonify({'success': False, 'error': 'Protocol not found'}), 404
+
+    new_state = result[1] & ~1
+
+    cur.execute("UPDATE protocols SET state = %s WHERE id = %s", (new_state, protocol_id))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        'success': True,
+        'message': 'Protocol deactivated successfully'
+    })
+
+
+@app.route('/api/protocols-filled', methods=['GET'])
+def get_protocols_filled():
+    """Get all filled protocols"""
+    conn = get_db_connection()
+    cur = dict_cursor(conn)
+
+    # Optional filtering by protocol_id or user_id
+    protocol_id = request.args.get('protocol_id')
+    user_id = request.args.get('user_id')
+
+    query = """
+        SELECT pf.id, pf.protocol_id, pf.user_id, pf.state, pf.fields,
+               p.name as protocol_name, u.name as user_name, u.surname as user_surname
+        FROM protocols_filled pf
+        JOIN protocols p ON pf.protocol_id = p.id
+        JOIN users u ON pf.user_id = u.id
+    """
+
+    conditions = []
+    params = []
+
+    if protocol_id:
+        conditions.append('pf.protocol_id = %s')
+        params.append(protocol_id)
+
+    if user_id:
+        conditions.append('pf.user_id = %s')
+        params.append(user_id)
+
+    if conditions:
+        query += ' WHERE ' + ' AND '.join(conditions)
+
+    query += ' ORDER BY pf.id DESC'
+
+    cur.execute(query, params)
+
+    filled_protocols = []
+    for row in cur.fetchall():
+        filled_protocols.append({
+            'id': row['id'],
+            'protocol_id': row['protocol_id'],
+            'protocol_name': row['protocol_name'],
+            'user_id': row['user_id'],
+            'user_name': f"{row['user_name']} {row['user_surname']}",
+            'state': row['state'],
+            'is_completed': bool(row['state'] & 1),
+            'is_signed_by_technician': bool(row['state'] & 2),
+            'is_signed_by_recipient': bool(row['state'] & 4),
+            'fields': row['fields']
+        })
+
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        'success': True,
+        'data': filled_protocols,
+        'count': len(filled_protocols)
+    })
+
+
+@app.route('/api/protocols-filled/<int:filled_id>', methods=['GET'])
+def get_protocol_filled(filled_id):
+    """Get specific filled protocol by ID"""
+    conn = get_db_connection()
+    cur = dict_cursor(conn)
+
+    cur.execute("""
+        SELECT pf.id, pf.protocol_id, pf.user_id, pf.state, pf.fields,
+               p.name as protocol_name, u.name as user_name, u.surname as user_surname
+        FROM protocols_filled pf
+        JOIN protocols p ON pf.protocol_id = p.id
+        JOIN users u ON pf.user_id = u.id
+        WHERE pf.id = %s
+    """, (filled_id,))
+
+    row = cur.fetchone()
+    if not row:
+        cur.close()
+        conn.close()
+        return jsonify({'success': False, 'error': 'Filled protocol not found'}), 404
+
+    filled_protocol = {
+        'id': row['id'],
+        'protocol_id': row['protocol_id'],
+        'protocol_name': row['protocol_name'],
+        'user_id': row['user_id'],
+        'user_name': f"{row['user_name']} {row['user_surname']}",
+        'state': row['state'],
+        'is_completed': bool(row['state'] & 1),
+        'is_signed_by_technician': bool(row['state'] & 2),
+        'is_signed_by_recipient': bool(row['state'] & 4),
+        'fields': row['fields']
+    }
+
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        'success': True,
+        'data': filled_protocol
+    })
+
+
+# Np
+# {
+#   "protocol_id": "1",
+#   "fields": {
+#     "activities": ["Activity 1", "Activity 2"],
+#     "responses": {
+#       "activity_0": "OK - All systems normal",
+#       "activity_1": "Needs attention - Minor issue found",
+#       "notes": "Routine check completed successfully"
+#     }
+#   }
+# }
+@app.route('/api/protocols-filled', methods=['POST'])
+def create_protocol_filled():
+    """Create new filled protocol"""
+    data = request.get_json()
+
+    if not data or 'protocol_id' not in data or 'fields' not in data:
+        return jsonify({'success': False, 'error': 'Missing required fields: protocol_id, fields'}), 400
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # Check if protocol exists and is active
+    cur.execute("SELECT id FROM protocols WHERE id = %s AND (state & 1) = 1", (data['protocol_id'],))
+    if not cur.fetchone():
+        cur.close()
+        conn.close()
+        return jsonify({'success': False, 'error': 'Protocol not found or inactive'}), 404
+
+    # Create sequence if it doesn't exist
+    cur.execute("""
+        CREATE SEQUENCE IF NOT EXISTS protocols_filled_id_seq START 1
+    """)
+
+    cur.execute("""
+        INSERT INTO protocols_filled (id, protocol_id, user_id, state, fields)
+        VALUES (nextval('protocols_filled_id_seq'), %s, %s, %s, %s)
+        RETURNING id
+    """, (
+        data['protocol_id'],
+        data.get('user_id', CURRENT_USER_ID),
+        data.get('state', 1),
+        json.dumps(data['fields'])
+    ))
+
+    filled_id = cur.fetchone()[0]
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        'success': True,
+        'message': 'Filled protocol created successfully',
+        'data': {'id': filled_id}
+    }), 201
 
 
 def get_forms():
@@ -194,7 +515,7 @@ def get_forms():
     return forms
 
 
-@app.route("/print_pdf/<form_idx>", methods=['POST'])
+@app.route("/print_pdf/<form_idx>", methods=['POST', 'GET'])
 def print_pdf(form_idx):
     pdf_filename = f"form_{form_idx}_{uuid.uuid4().hex}.pdf"
     pdf_path = os.path.join('/tmp/', pdf_filename)
