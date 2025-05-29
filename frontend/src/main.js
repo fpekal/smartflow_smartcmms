@@ -14,8 +14,10 @@ import CMMSApi from './services/CMMSApi'
 // Composables
 import { createApp } from 'vue'
 
+var backendUrl = process.env.BACKEND_URL || 'http://localhost:5000'
+
 const app = createApp(App)
-app.provide('cmms_api', new CMMSApi('http://localhost:5000'))
+app.provide('cmms_api', new CMMSApi(backendUrl))
 
 registerPlugins(app)
 
