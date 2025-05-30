@@ -35,7 +35,6 @@ def dict_cursor(conn):
 
 
 def init_db():
-    print("AAAAAAAAA")
     conn = psycopg2.connect(**DB_PARAMS)
     cur = conn.cursor()
 
@@ -122,7 +121,6 @@ def init_db():
     
     cur.execute("SELECT COUNT(*) FROM protocols")
     count = cur.fetchone()[0]
-    print(count)
     
     if count == 0:
         cur.execute("""
