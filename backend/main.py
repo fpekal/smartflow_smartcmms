@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from flask import Flask, render_template, abort, send_file, request, redirect, \
     url_for, jsonify
+from werkzeug.utils import secure_filename
 import json
 import tempfile
 import os
@@ -34,6 +35,7 @@ def dict_cursor(conn):
 
 
 def init_db():
+    print("AAAAAAAAA")
     conn = psycopg2.connect(**DB_PARAMS)
     cur = conn.cursor()
 
@@ -120,8 +122,9 @@ def init_db():
     
     cur.execute("SELECT COUNT(*) FROM protocols")
     count = cur.fetchone()[0]
+    print(count)
     
-    if count <= 1:
+    if count == 0:
         cur.execute("""
             INSERT INTO users (id, name, surname, email, hashed_pass, role, state) 
             VALUES (1, 'Admin', 'User', 'admin@example.com', 'dummy_hash', 7, 0)
@@ -588,6 +591,22 @@ def form(form_idx):
         return f"Protocol not found with ID: {form_idx}", 404
         
     return render_template("form.html.jinja", form_id=form_idx, title=form['name'], activities=form['activities'])
+
+
+@app.route('/upload-protocols', methods=['POST'])
+def upload_protocols():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    
+    filename = secure_filename(file.filename)
+
+    # TODO
+    
+    return jsonify({'message': 'File uploaded successfully'}), 200
 
 
 @app.route("/")

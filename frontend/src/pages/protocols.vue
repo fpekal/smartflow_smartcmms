@@ -3,7 +3,14 @@
     
     <div class="buttons-div">
         <v-btn prepend-icon="mdi-plus" class="normal-button"> DODAJ </v-btn>
-        <v-btn prepend-icon="mdi-plus" class="normal-button" @click="importProtocols"> IMPORT </v-btn>
+        <v-btn prepend-icon="mdi-upload" class="normal-button" @click="triggerFileUpload"> IMPORT </v-btn>
+        <input
+            ref="fileInput"
+            type="file"
+            style="display: none;"
+            @change="uploadFile"
+            accept=".json,.csv,.xlsx"
+        />
     </div>
     <v-divider :thickness="3" class="border-opacity-23"></v-divider>
 
@@ -18,14 +25,42 @@
 </template>
 
 <script setup>
-    import {inject, ref} from 'vue'
+    import {inject, ref, onMounted} from 'vue'
 
     let api = inject('cmms_api')
     let protocols = ref([]);
+    const fileInput = ref(null);
 
     async function importProtocols() {
         protocols.value = (await api.getProtocols()).data
     }
+
+    function triggerFileUpload() {
+        fileInput.value.click();
+    }
+
+    async function uploadFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            const response = await api.uploadProtocols(file);
+            
+            if (response.error) {
+                console.error('Upload failed:', response.error);
+            } else {
+                await importProtocols();
+                event.target.value = '';
+                console.log('File uploaded successfully:', response.message || 'Success');
+            }
+        } catch (error) {
+            console.error('Error uploading file:', error);
+        }
+    }
+
+    onMounted(() => {
+        importProtocols()
+    })
 </script>
 
 <style scoped>
