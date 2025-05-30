@@ -121,7 +121,7 @@ def init_db():
     cur.execute("SELECT COUNT(*) FROM protocols")
     count = cur.fetchone()[0]
     
-    if count == 0:
+    if count <= 1:
         cur.execute("""
             INSERT INTO users (id, name, surname, email, hashed_pass, role, state) 
             VALUES (1, 'Admin', 'User', 'admin@example.com', 'dummy_hash', 7, 0)
@@ -157,7 +157,7 @@ def init_db():
         
         cur.execute("""
             INSERT INTO protocols (id, name, author_id, state, fields)
-            VALUES ('1', '1.1 Przegląd statku meteorologicznego v1', 1, 1, %s)
+            VALUES ('1', '1 Przegląd statku meteorologicznego v1', 1, 1, %s)
             ON CONFLICT DO NOTHING
         """, (fields_json,))
     
