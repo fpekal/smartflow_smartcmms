@@ -2,7 +2,9 @@
     <Header></Header>
     
     <div class="buttons-div">
-        <v-btn prepend-icon="mdi-plus" class="normal-button"> DODAJ </v-btn>
+        <RouterLink to="/create-protocol">
+            <v-btn prepend-icon="mdi-plus" class="normal-button"> DODAJ </v-btn>
+        </RouterLink>
         <v-btn prepend-icon="mdi-upload" class="normal-button" @click="triggerFileUpload"> IMPORT </v-btn>
         <input
             ref="fileInput"
@@ -78,11 +80,6 @@
         align-items: center;
         gap: 15px;
         margin-top: 15px;
-    }
-
-    .normal-button {
-        background-color: var(--whitegray);
-        color: var(--darkgray);
     }
 
     .protocol-button {
