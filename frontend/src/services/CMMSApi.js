@@ -11,25 +11,18 @@ class CMMSApi {
         return this.fetch('/protocols/' + id, 'GET')
     }
 
-    async uploadProtocols(file) {
+    uploadProtocols(file) {
         const formData = new FormData();
         formData.append('file', file);
         
-        const requestOptions = {
-            method: 'POST',
-            body: formData,
-            redirect: 'follow'
-        };
-        
-        let response = await fetch(this.api_url + '/upload-protocols', requestOptions);
-        let json = await response.json();
-        return json;
+        return this.fetch('/upload-protocols', 'POST', formData);
     }
     
-    async fetch(endpoint, method) {
+    async fetch(endpoint, method, body = null) {
         const requestOptions = {
             method: method,
-            redirect: 'follow'
+            redirect: 'follow',
+            body
         };
         let response = await fetch(this.api_url + endpoint, requestOptions);
         let json = await response.json();
