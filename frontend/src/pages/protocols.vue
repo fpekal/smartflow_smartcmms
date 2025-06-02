@@ -18,10 +18,9 @@
         <RouterLink class="protocols-div" v-for="p in protocols" :to="'/protocol/' + p.id">
             <v-btn class="protocol-button">{{ p.name }}</v-btn>
         </RouterLink>
-        <v-btn class="protocol-button">test</v-btn>
-        <v-btn class="protocol-button">test</v-btn>
-        <v-btn class="protocol-button">test</v-btn>
     </div>
+
+    
 </template>
 
 <script setup>

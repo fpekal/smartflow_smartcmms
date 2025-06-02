@@ -13,7 +13,7 @@
         @touchmove.prevent="draw"
         @touchend.prevent="stopDrawing"
       ></canvas>
-      <button type="button" @click="clearCanvas">Clear</button>
+      <button type="button" @click="clearCanvas" no-generate>Clear</button>
     </div>
   </template>
   
@@ -70,7 +70,7 @@
   
   const clearCanvas = () => {
     ctx.clearRect(0, 0, props.width, props.height);
-    emit('update:modelValue', '');
+    emit('update:modelValue', null);
   };
   
   onMounted(() => {

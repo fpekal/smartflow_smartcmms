@@ -109,10 +109,13 @@
           </label>
         </div>
   
-        <v-textarea v-model="form.remarks" label="Uwagi / Usterki / Zalecenia" />
-  
-        <v-btn type="submit" class="submitButton">Generuj PDF</v-btn>
+        <label style="display: block; margin-top: 15px;">Uwagi / Usterki / Zalecenia</label>
+        <v-textarea v-model="form.remarks" />
+        <SignaturePad v-model="signatureDataUrl"/>
+
+        <v-btn type="submit" class="submitButton" no-generate>Generuj PDF</v-btn>
       </form>
+
     </div>
   
     <div v-else-if="loading"><Loading/></div>
@@ -130,6 +133,7 @@
   const id = parseInt(route.params.id)
   const protocol = ref(null)
   const loading = ref(true)
+  const signatureDataUrl = ref(null)
   
   const form = ref({
     building: '',
@@ -171,7 +175,9 @@
     const elementToPrint = document.querySelector("form");
 
     const clone = elementToPrint.cloneNode(true);
-    clone.removeChild(clone.querySelector('.submitButton'));
+    console.log(clone.querySelectorAll('[no-generate]'));
+    clone.querySelectorAll('[no-generate]').forEach(item => item.parentNode.removeChild(item))
+    // clone.removeChild(clone.querySelectorAll('[no-generate]'));
 
     let txtareas = clone.querySelectorAll('textarea');
     txtareas.forEach((a) => {
@@ -227,21 +233,24 @@
     printWindow.document.body.appendChild(clone);
     let signDiv = document.createElement('div');
     signDiv.innerHTML = `
-        <div>
-            <span>Wykonał</span>
-            <span style="float: right;">Odebrał</span>
+      <div style="margin-top: 50px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <p><strong>Wykonał:</strong></p>
+            ${signatureDataUrl.value ? `<img src="${signatureDataUrl.value}" style="max-height: 100px; border: 1px solid #ccc;" />` : '<p>............................</p>'}
+          </div>
+          <div>
+            <p><strong>Odebrał:</strong></p>
+            <p>............................</p>
+          </div>
         </div>
-        <br>
-        <div>
-            <span>............................</span>
-            <span style="float: right;">............................</span>
-        </div>
+      </div>
     `;
     printWindow.document.body.appendChild(signDiv);
 
     // Trigger the print dialog
     printWindow.document.close();
-    printWindow.print();
+    printWindow.onload = () => printWindow.print();
   }
   </script>
   

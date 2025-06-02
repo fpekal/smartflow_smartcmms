@@ -15,5 +15,6 @@ declare module 'vue' {
     Logo: typeof import('./src/components/Logo.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SignaturePad: typeof import('./src/components/SignaturePad.vue')['default']
   }
 }
