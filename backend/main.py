@@ -516,6 +516,19 @@ def get_forms():
     return forms
 
 
+@app.route('/upload-pdf', methods=['POST'])
+def submit_pdf():
+    print("dupxko")
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+
+    temp_pdf_path = os.path.join('/tmp/', f"temp_{uuid.uuid4().hex}.html")
+    with open(temp_pdf_path, 'w', encoding='utf-8') as f:
+        f.write(rendered_html)
+    return jsonify({'success': True})
+
 @app.route("/print_pdf/<form_idx>", methods=['POST', 'GET'])
 def print_pdf(form_idx):
     pdf_filename = f"form_{form_idx}_{uuid.uuid4().hex}.pdf"

@@ -248,9 +248,21 @@
     `;
     printWindow.document.body.appendChild(signDiv);
 
-    // Trigger the print dialog
-    printWindow.document.close();
-    printWindow.onload = () => printWindow.print();
+    try {
+      const pdfBlob = await window.html2pdf().from(printWindow).outputPdf('blob');
+      const formData = new FormData();
+      formData.append('file', pdfBlob, 'protokol.pdf');
+
+      const response = api.submitPDF(formData);
+
+      if (response.error) {
+          console.error('Upload of PDF failed:', response.error);
+      } else {
+          console.log('PDF uploaded successfully:', response.message || 'Success');
+      }
+    } catch (error) {
+        console.error('Error uploading PDF:', error);
+    }
   }
   </script>
   
