@@ -12,6 +12,7 @@ import psycopg2
 import psycopg2.extras
 from datetime import datetime
 from api_reports import api_reports
+import pandas as pd
 
 
 app = Flask(__name__)
@@ -24,6 +25,14 @@ DB_PARAMS = {
 }
 
 CURRENT_USER_ID = 1
+
+ALLOWED_EXTENSIONS = {'xls', 'xlsx'}
+
+def allowed_file(filename):
+    return (
+        '.' in filename and
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    )
 
 def get_db_connection():
     conn = psycopg2.connect(**DB_PARAMS)
@@ -595,17 +604,94 @@ def form(form_idx):
 def upload_protocols():
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
-    
+
     file = request.files['file']
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
-    
+
     filename = secure_filename(file.filename)
 
-    # TODO
-    
-    return jsonify({'message': 'File uploaded successfully'}), 200
+    if not allowed_file(filename):
+        return jsonify({'error': 'Dozwolone pliki to tylko .xls i .xlsx'}), 400
 
+    tmp_dir = tempfile.gettempdir()
+    tmp_path = os.path.join(tmp_dir, filename)
+    file.save(tmp_path)
+
+    try:
+        df = pd.read_excel(tmp_path, sheet_name=0)
+    except Exception as e:
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+        return jsonify({'error': f'Nie można odczytać pliku Excel: {e}'}), 400
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    failed = []
+    for idx, row in df.iterrows():
+        protocol_id = row.get('id')
+        name = row.get('name')
+        if pd.isna(protocol_id) or pd.isna(name):
+            continue
+        protocol_id = str(protocol_id).strip()
+        name = str(name).strip()
+
+        if 'fields' in df.columns:
+            fields_cell = row.get('fields')
+        else:
+            fields_cell = None
+
+        if pd.isna(fields_cell) or fields_cell is None:
+            fields_json = {}
+        else:
+            if isinstance(fields_cell, dict):
+                fields_json = fields_cell
+            else:
+                try:
+                    fields_json = json.loads(str(fields_cell))
+                except Exception:
+                    fields_json = {}
+
+        author_id = CURRENT_USER_ID
+        state = 1
+
+        try:
+            cur.execute(
+                """
+                INSERT INTO protocols (id, name, author_id, state, fields)
+                VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE
+                  SET name = EXCLUDED.name,
+                      author_id = EXCLUDED.author_id,
+                      state = EXCLUDED.state,
+                      fields = EXCLUDED.fields
+                """,
+                (protocol_id, name, author_id, state, json.dumps(fields_json))
+            )
+        except Exception as e:
+            failed.append(protocol_id)
+            continue
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    try:
+        os.remove(tmp_path)
+    except OSError:
+        pass
+
+    if failed:
+        return jsonify({
+            'success': False,
+            'message': f'Nie udało się zaimportować protokołów o ID: {", ".join(failed)}',
+            'failed_ids': failed
+        }), 207
+
+    return redirect(url_for('index'))
 
 @app.route("/")
 def index():
