@@ -14,7 +14,7 @@ class CMMSApi {
     uploadProtocols(file) {
         const formData = new FormData();
         formData.append('file', file);
-        
+
         return this.fetch('/upload-protocols', 'POST', formData);
     }
 
@@ -27,12 +27,12 @@ class CMMSApi {
             },
             body: JSON.stringify(protocol)
         };
-        
+
         let response = await fetch(this.api_url + '/protocols', requestOptions);
         let json = await response.json();
         return json;
     }
-    
+
     async fetch(endpoint, method, body = null) {
         const requestOptions = {
             method: method,
