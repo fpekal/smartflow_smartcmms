@@ -18,11 +18,14 @@ from api_reports import api_reports
 app = Flask(__name__)
 CORS(app)
 
+IDC = os.environ.get('IN_DOCKER_CONTAINER')
+IDC_cond = False if IDC is None else IDC == "1"
+
 DB_PARAMS = {
     'dbname': os.environ.get('POSTGRES_DB', 'test'),
     'user': os.environ.get('POSTGRES_USER', 'test'),
     'password': os.environ.get('POSTGRES_PASSWORD', 'test'),
-    'host': 'db'
+    'host': 'db' if IDC_cond else 'localhost'
 }
 
 CURRENT_USER_ID = 1
@@ -379,9 +382,6 @@ def print_pdf(form_idx):
 
     with open(temp_html_path, 'w', encoding='utf-8') as f:
         f.write(rendered_html)
-    IDC = os.environ.get('IN_DOCKER_CONTAINER')
-
-    IDC_cond = False if IDC is None else IDC == "1"
 
     subprocess.run([
         'google-chrome' if IDC_cond else 'chromium',
