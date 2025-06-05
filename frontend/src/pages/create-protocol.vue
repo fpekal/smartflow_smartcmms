@@ -5,13 +5,16 @@
   
       <form @submit.prevent="submit">
         <div class="form-group">
-          <label>Nazwa protokołu</label>
-          <input v-model="form.name" type="text" required />
+          <label>Imię i nazwisko autora</label>
+          <input v-model="form.author_name" type="text" required />
+
+          <label>ID Protokołu</label>
+          <input v-model="form.id" type="text" required placeholder="np. 2.1.3" />
         </div>
 
         <div class="form-group">
-            <label>Imię i nazwisko autora</label>
-            <input v-model="form.author_name" type="text" required />
+          <label>Nazwa protokołu</label>
+          <input v-model="form.name" type="text" required />
         </div>
   
         <div class="form-group">
@@ -23,16 +26,18 @@
           <v-btn class="normal-button" type="button" @click="addActivity">+ Dodaj aktywność</v-btn>
         </div>
   
-        <v-btn class="normal-button" type="submit">Zatwierdź</v-btn>
+        <v-btn class="normal-button" type="submit" :disabled="isLoading">
+          {{ isLoading ? 'Tworzenie...' : 'Zatwierdź' }}
+        </v-btn>
       </form>
 
     <RouterLink to="/protocols">
-        <v-btn class="normal-button" type="submit">Cofnij</v-btn>
+        <v-btn class="normal-button">Cofnij</v-btn>
     </RouterLink>
   
-      <div v-if="output" class="output">
-        <h2>Wynik JSON:</h2>
-        <pre>{{ output }}</pre>
+      <div v-if="error" class="error">
+        <h2>Błąd:</h2>
+        <p>{{ error }}</p>
       </div>
     </div>
     <Loading v-if="isLoading"></Loading>
@@ -45,43 +50,71 @@
   const router = useRouter()
   const api = inject('cmms_api')
   const isLoading = ref(false);
+  const error = ref('');
 
   const form = reactive({
+    id: '',
     name: '',
-    author_id: null,
-    author_name: '',
     state: 1,
     fields: {
       activities: ['']
     }
   })
   
-  const output = ref('')
-  
   const addActivity = () => {
     form.fields.activities.push('')
   }
   
   const removeActivity = (index) => {
-    form.fields.activities.splice(index, 1)
+    if (form.fields.activities.length > 1) {
+      form.fields.activities.splice(index, 1)
+    }
   }
   
-  const submit = () => {
-    isLoading.value = true;
-    const protocol = {
-      id: 0,
-      name: form.name,
-      author_id: form.author_id,
-      author_name: form.author_name,
-      state: form.state,
-      fields: {
-        activities: [...form.fields.activities]
-      }
+  const submit = async () => {
+    // Clear previous error
+    error.value = ''
+    
+    if (!form.id.trim()) {
+      error.value = 'ID protokołu jest wymagane'
+      return
     }
+    
+    if (!form.name.trim()) {
+      error.value = 'Nazwa protokołu jest wymagana'
+      return
+    }
+    
+    const filteredActivities = form.fields.activities.filter(activity => activity.trim() !== '')
+    
+    if (filteredActivities.length === 0) {
+      error.value = 'Przynajmniej jedna aktywność jest wymagana'
+      return
+    }
+    
+    isLoading.value = true
+    
+    try {
+      const protocol = {
+        id: form.id.trim(),
+        name: form.name.trim(),
+        state: form.state,
+        fields: {
+          activities: filteredActivities
+        }
+      }
 
-    api.createProtocol(protocol);
-    isLoading.value = false;
-    router.back();
+      await api.createProtocol(protocol)
+      
+      // Success - navigate back
+      router.back()
+      
+    } catch (err) {
+      console.error('Error creating protocol:', err)
+      error.value = err.message || 'Wystąpił błąd podczas tworzenia protokołu'
+    } finally {
+      isLoading.value = false
+    }
   }
   </script>
   
@@ -93,6 +126,12 @@
   
   .form-group {
     margin-bottom: 20px;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
   }
   
   input[type="text"],
@@ -109,6 +148,11 @@
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
+    align-items: center;
+  }
+  
+  .activity-row input {
+    flex: 1;
   }
   
   button {
@@ -116,5 +160,21 @@
     margin-top: 5px;
   }
   
-  </style>
+  .error {
+    background-color: #fee;
+    border: 1px solid #fcc;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+  }
   
+  .error h2 {
+    color: #c33;
+    margin-top: 0;
+  }
+  
+  .error p {
+    color: #c33;
+    margin-bottom: 0;
+  }
+  </style>

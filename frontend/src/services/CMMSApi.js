@@ -18,8 +18,19 @@ class CMMSApi {
         return this.fetch('/upload-protocols', 'POST', formData);
     }
 
-    createProtocol(protocol) {
-        throw new Error('Not implemented!')
+    async createProtocol(protocol) {
+        const requestOptions = {
+            method: 'POST',
+            redirect: 'follow',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(protocol)
+        };
+        
+        let response = await fetch(this.api_url + '/protocols', requestOptions);
+        let json = await response.json();
+        return json;
     }
     
     async fetch(endpoint, method, body = null) {
