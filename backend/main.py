@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from flask import Flask, render_template, abort, send_file, request, redirect, \
     url_for, jsonify
+from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import json
 import tempfile
@@ -15,6 +16,7 @@ from api_reports import api_reports
 
 
 app = Flask(__name__)
+CORS(app)
 
 DB_PARAMS = {
     'dbname': os.environ.get('POSTGRES_DB', 'test'),
