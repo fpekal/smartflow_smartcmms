@@ -59,6 +59,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       MONGO_USER: ${MONGO_USER}
       MONGO_PASSWORD: ${MONGO_PASSWORD}
+      IN_DOCKER_CONTAINER: "1"
     networks:
       - frontend
       - backend

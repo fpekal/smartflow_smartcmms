@@ -379,9 +379,13 @@ def print_pdf(form_idx):
 
     with open(temp_html_path, 'w', encoding='utf-8') as f:
         f.write(rendered_html)
+    IDC = os.environ.get('IN_DOCKER_CONTAINER')
+
+    IDC_cond = False if IDC is None else IDC == "1"
 
     subprocess.run([
-        'chromium',
+        'google-chrome' if IDC_cond else 'chromium',
+        '--no-sandbox' if IDC_cond else '',
         '--headless',
         '--no-pdf-header-footer',
         '--disable-gpu',
@@ -392,23 +396,6 @@ def print_pdf(form_idx):
     time.sleep(1)
 
     if os.path.exists(pdf_path):
-        conn = psycopg2.connect(**DB_PARAMS)
-        cur = conn.cursor()
-        
-        fields_data = {
-            "activities": form['activities'],
-            "responses": {k: v for k, v in request.form.items() if k != 'csrf_token'}
-        }
-        
-        cur.execute("""
-            INSERT INTO protocols_filled (id, protocol_id, user_id, state, fields)
-            VALUES (nextval('protocols_filled_id_seq'), %s, 1, 1, %s)
-        """, (form_idx, json.dumps(fields_data)))
-        
-        conn.commit()
-        cur.close()
-        conn.close()
-        
         return send_file(pdf_path,
                          download_name=f"form_{form_idx}.pdf",
                          as_attachment=True)
