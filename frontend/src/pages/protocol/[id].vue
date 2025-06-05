@@ -1,10 +1,10 @@
 <template>
     <Header />
-  
+
     <div v-if="protocol" class="protocol">
       <h1>{{ protocol.name }}</h1>
       <p>Autor: {{ protocol.author_name }}</p>
-  
+
       <form @submit.prevent="submitForm">
         <table>
           <tbody>
@@ -52,9 +52,9 @@
             <li>sprawdzić narzędzia robocze, zabezpieczenia ogólne i osobiste (BHP)</li>
             <li>skutecznie zabezpieczyć miejsce prowadzenia prac przed dostępem osób postronnych</li>
         </ol>
-        
+
         <br>
-        
+
         <h3>Czynności serwisowe:</h3>
         <table class="service-activities">
           <thead>
@@ -88,7 +88,7 @@
             </tr>
           </tbody>
         </table>
-  
+
         <h3>Status urządzenia:</h3>
         <div>
           <label class="crossout">
@@ -108,7 +108,7 @@
             <input type="checkbox" v-model="form.not_allowed" /> Niedopuszczone do dalszej eksploatacji
           </label>
         </div>
-  
+
         <label style="display: block; margin-top: 15px;">Uwagi / Usterki / Zalecenia</label>
         <v-textarea v-model="form.remarks" />
         <SignaturePad v-model="signatureDataUrl"/>
@@ -117,24 +117,24 @@
       </form>
 
     </div>
-  
+
     <div v-else-if="loading"><Loading/></div>
     <div v-else>Protokół nie znaleziony. Przekierowywanie...</div>
   </template>
-  
+
   <script setup>
   import { ref, onMounted, inject } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  
+
   const route = useRoute()
   const router = useRouter()
   const api = inject('cmms_api')
-  
-  const id = parseInt(route.params.id)
+
+  const id = route.params.id
   const protocol = ref(null)
   const loading = ref(true)
   const signatureDataUrl = ref(null)
-  
+
   const form = ref({
     building: '',
     address: '',
@@ -150,7 +150,7 @@
     not_allowed: false,
     remarks: ''
   })
-  
+
   onMounted(async () => {
     try {
       const res = await api.getProtocol(id)
@@ -170,7 +170,7 @@
       loading.value = false
     }
   })
-  
+
   const submitForm = () => {
     const elementToPrint = document.querySelector("form");
 
@@ -253,7 +253,7 @@
     printWindow.onload = () => printWindow.print();
   }
   </script>
-  
+
   <style scoped>
   .protocol {
     margin-top: 15px;
@@ -265,7 +265,7 @@
     margin-bottom: 1em;
     margin-top: 10px;
   }
-  
+
   td, th {
     border: 1px solid #ccc;
     text-align: left;
@@ -283,25 +283,25 @@
   ol li::before {
     content: counter(list-counter) ". ";
   }
-  
+
   input[type="text"], input[type="date"], select {
     width: 100%;
     color: black;
   }
-  
+
   select {
     width: 100%;
   }
-  
+
   table.service-activities {
     background-color: white;
   }
-  
+
   table.service-activities td,
   table.service-activities th {
     background-color: white;
   }
-  
+
   .comment-text {
     color: black;
     width: 100%;
@@ -309,7 +309,7 @@
     font-size: 14px;
     line-height: 1.5;
   }
-  
+
   .submitButton {
     background-color: var(--arslightblue);
     border: none;
@@ -323,9 +323,9 @@
     cursor: pointer;
     border-radius: 4px;
   }
-  
+
   .submitButton:hover {
     background-color: var(--arsdeepblue);
   }
   </style>
-  
+
