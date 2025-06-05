@@ -13,6 +13,7 @@ import psycopg2
 import psycopg2.extras
 from datetime import datetime
 from api_reports import api_reports
+from email_send import send_email
 
 
 app = Flask(__name__)
@@ -358,8 +359,7 @@ def get_forms():
     return forms
 
 
-@app.route("/print_pdf/<form_idx>", methods=['POST', 'GET'])
-def print_pdf(form_idx):
+def generate_pdf(form_idx) -> str | None:
     pdf_filename = f"form_{form_idx}_{uuid.uuid4().hex}.pdf"
     pdf_path = os.path.join('/tmp/', pdf_filename)
 
@@ -369,7 +369,7 @@ def print_pdf(form_idx):
     form = next((f for f in forms if str(f['id']) == str(form_idx)), None)
     
     if not form:
-        return "Protocol not found", 404
+        return None
 
     rendered_html = render_template(
         "form.html.jinja",
@@ -395,12 +395,37 @@ def print_pdf(form_idx):
 
     time.sleep(1)
 
+    return pdf_path
+
+
+@app.route("/print_pdf/<form_idx>", methods=['POST', 'GET'])
+def print_pdf(form_idx):
+    pdf_path = generate_pdf(form_idx)
+
+    if pdf_path is None:
+        return "Protocol not found", 404
+
     if os.path.exists(pdf_path):
         return send_file(pdf_path,
                          download_name=f"form_{form_idx}.pdf",
                          as_attachment=True)
     else:
         return "Failed to generate PDF", 500
+
+
+# Wymagane pola w jsonie: {"recipient": mail_odbiorcy}
+@app.route("/send_email/<form_idx>", methods=['POST'])
+def send_email_protocol(form_idx):
+    pdf_path = generate_pdf(form_idx)
+
+    if pdf_path is None:
+        return "Protocol not found", 404
+
+    send_email(os.environ.get('EMAIL_EMAIL', ''), os.environ.get('EMAIL_TOKEN', ''), request.get_json()['recipient'], "Protokół", "", pdf_path)
+
+    # Tutaj pewnie przydałoby się jakieś wykrywanie czy udało się wysłać maila, idk
+
+    return jsonify({'message': 'Email sent'}), 200
 
 
 @app.route("/form/<form_idx>")
