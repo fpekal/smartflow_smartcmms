@@ -4,8 +4,6 @@ run apt update && apt install -y python3 python3-pip python3-venv gcc libpq-dev 
 run curl -LO https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 run apt-get install -y ./google-chrome-stable_current_amd64.deb
 run rm google-chrome-stable_current_amd64.deb
-run useradd -ms /bin/bash backend
-user backend
 workdir /app
 copy . .
 run /bin/bash -c "python3 -m venv . && source ./bin/activate && pip install -r ./backend/requirements.txt"
