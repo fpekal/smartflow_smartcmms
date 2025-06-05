@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from flask import Flask, render_template, abort, send_file, request, redirect, \
-    url_for, jsonify
+    url_for, jsonify, current_app
 from werkzeug.utils import secure_filename
 import json
 import tempfile
@@ -12,8 +12,7 @@ import psycopg2
 import psycopg2.extras
 from datetime import datetime
 from api_reports import api_reports
-import pandas as pd
-
+import csv
 
 app = Flask(__name__)
 
@@ -610,88 +609,98 @@ def upload_protocols():
         return jsonify({'error': 'No file selected'}), 400
 
     filename = secure_filename(file.filename)
+    tmp_dir = tempfile.mkdtemp(prefix="upload_protocols_")
+    saved_path = os.path.join(tmp_dir, filename)
+    file.save(saved_path)
 
-    if not allowed_file(filename):
-        return jsonify({'error': 'Dozwolone pliki to tylko .xls i .xlsx'}), 400
-
-    tmp_dir = tempfile.gettempdir()
-    tmp_path = os.path.join(tmp_dir, filename)
-    file.save(tmp_path)
+    ext = filename.rsplit('.', 1)[-1].lower()
+    json_data = None
 
     try:
-        df = pd.read_excel(tmp_path, sheet_name=0)
-    except Exception as e:
-        try:
-            os.remove(tmp_path)
-        except OSError:
-            pass
-        return jsonify({'error': f'Nie można odczytać pliku Excel: {e}'}), 400
-
-    conn = get_db_connection()
-    cur = conn.cursor()
-
-    failed = []
-    for idx, row in df.iterrows():
-        protocol_id = row.get('id')
-        name = row.get('name')
-        if pd.isna(protocol_id) or pd.isna(name):
-            continue
-        protocol_id = str(protocol_id).strip()
-        name = str(name).strip()
-
-        if 'fields' in df.columns:
-            fields_cell = row.get('fields')
-        else:
-            fields_cell = None
-
-        if pd.isna(fields_cell) or fields_cell is None:
-            fields_json = {}
-        else:
-            if isinstance(fields_cell, dict):
-                fields_json = fields_cell
-            else:
-                try:
-                    fields_json = json.loads(str(fields_cell))
-                except Exception:
-                    fields_json = {}
-
-        author_id = CURRENT_USER_ID
-        state = 1
-
-        try:
-            cur.execute(
-                """
-                INSERT INTO protocols (id, name, author_id, state, fields)
-                VALUES (%s, %s, %s, %s, %s)
-                ON CONFLICT (id) DO UPDATE
-                  SET name = EXCLUDED.name,
-                      author_id = EXCLUDED.author_id,
-                      state = EXCLUDED.state,
-                      fields = EXCLUDED.fields
-                """,
-                (protocol_id, name, author_id, state, json.dumps(fields_json))
+        if ext in ('xls', 'xlsx'):
+            script_path = os.path.join(os.getcwd(), 'baza', 'surveys_to_json')
+            proc = subprocess.run(
+                [script_path, saved_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True
             )
-        except Exception as e:
-            failed.append(protocol_id)
-            continue
+            stdout = proc.stdout.decode('utf-8')
+            json_data = json.loads(stdout)
 
-    conn.commit()
-    cur.close()
-    conn.close()
+        elif ext == 'json':
+            with open(saved_path, 'r', encoding='utf-8') as f:
+                json_data = json.load(f)
 
-    try:
-        os.remove(tmp_path)
-    except OSError:
-        pass
 
-    if failed:
-        return jsonify({
-            'success': False,
-            'message': f'Nie udało się zaimportować protokołów o ID: {", ".join(failed)}',
-            'failed_ids': failed
-        }), 207
+        elif ext == 'csv':
 
-    return redirect(url_for('index'))
+            try:
+                with open(saved_path, 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f, delimiter=';')
+                    json_data = [row for row in reader]
+                used_enc = 'utf-8'
+            except UnicodeDecodeError:
+                used_enc = 'cp1250'
+                with open(saved_path, 'r', encoding='cp1250') as f:
+                    reader = csv.DictReader(f, delimiter=';')
+                    json_data = [row for row in reader]
+            app.logger.debug(f'CSV otwarty z encoding={used_enc} i delimiter=";"')
+        else:
+            return jsonify({'error': 'Unsupported file extension'}), 400
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        inserted = 0
+        errors = []
+
+        for idx, rec in enumerate(json_data):
+            try:
+                protocol_id = str(rec.get('id'))
+                name = str(rec.get('name'))
+                author_id = int(rec.get('author_id'))
+                state = int(rec.get('state'))
+                fields_raw = rec.get('fields')
+                if isinstance(fields_raw, str):
+                    fields_json = json.dumps(json.loads(fields_raw))
+                else:
+                    fields_json = json.dumps(fields_raw)
+
+                cur.execute("""
+                    INSERT INTO protocols (id, name, author_id, state, fields)
+                    VALUES (%s, %s, %s, %s, %s)
+                    ON CONFLICT (id) DO UPDATE
+                      SET name = EXCLUDED.name,
+                          author_id = EXCLUDED.author_id,
+                          state = EXCLUDED.state,
+                          fields = EXCLUDED.fields
+                """, (protocol_id, name, author_id, state, fields_json))
+                inserted += 1
+            except Exception as e:
+                errors.append({'row': idx, 'error': str(e)})
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        try:
+            import shutil
+            shutil.rmtree(tmp_dir)
+        except:
+            pass
+
+        if errors:
+            return jsonify({
+                'message': f'{inserted} protokolow wgrano, ale pojawily sie błedy w {len(errors)} wierszach',
+                'details': errors
+            }), 207
+        else:
+            return jsonify({'message': f'Wgrano {inserted} protokolow'}), 200
+
+    except subprocess.CalledProcessError as e:
+        return jsonify({'error': 'Blad konwersji xlsx->JSON', 'stderr': e.stderr.decode('utf-8')}), 500
+    except Exception as e:
+        return jsonify({'error': 'Nieoczekiwany blad: ' + str(e)}), 500
 
 @app.route("/")
 def index():
@@ -703,10 +712,6 @@ def index():
 app.register_blueprint(api_reports)
 
 init_db()
-# if __name__ == "__main__":
-#     import sys
-#     print("INITTTTT")
-#     print("INITTTTTTER", file=sys.stderr)
-    
-#     init_db()
-#     app.run(debug=True)
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', debug=True)
