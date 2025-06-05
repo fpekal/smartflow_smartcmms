@@ -7,6 +7,7 @@ import json
 import tempfile
 import os
 import subprocess
+import re
 import time
 import uuid
 import psycopg2
@@ -432,7 +433,7 @@ def upload_protocols():
         tmp_file.write(file.read())
         process_result = subprocess.run(["./baza/surveys_to_json", tmp_file.name], check=True, capture_output=True, timeout=30)
         protocol = json.loads(process_result.stdout)[0]
-        id = hashlib.sha256(process_result.stdout).hexdigest()[:16]
+        id = re.search(r"(\d+(\.\d+)*)", file.filename).group(0) # Regex szuka w nazwie pliku stringa w stylu "1.2.3" i go zwraca
         fields = json.dumps({"activities": protocol['activities']})
         print(protocol)
 
