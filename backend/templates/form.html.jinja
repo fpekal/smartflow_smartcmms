@@ -147,28 +147,28 @@
         <td align="center">
           <label class="activity_radio">
             <input type="radio" name="activity_choice{{loop.index}}" value="nie_dotyczy"
-                   {% if form_data is defined and form_data.get('activity_choice'~loop.index) == 'nie_dotyczy' %}checked{% endif %}>
+                   {% if form_data is defined and form_data.activities[loop.index - 1].choice == 'nie_dotyczy' %}checked{% endif %}>
           </label>
         </td>
         <td align="center">
           <label class="activity_radio">
             <input type="radio" name="activity_choice{{loop.index}}" value="brak_uchybień"
-                   {% if form_data is defined and form_data.get('activity_choice'~loop.index) == 'brak_uchybień' %}checked{% endif %}>
+                   {% if form_data is defined and form_data.activities[loop.index - 1].choice == 'brak_uchybień' %}checked{% endif %}>
           </label>
         </td>
         <td align="center">
           <label class="activity_radio">
             <input type="radio" name="activity_choice{{loop.index}}" value="uwagi"
-                   {% if form_data is defined and form_data.get('activity_choice'~loop.index) == 'uwagi' %}checked{% endif %}>
+                   {% if form_data is defined and form_data.activities[loop.index - 1].choice == 'uwagi' %}checked{% endif %}>
           </label>
         </td>
         <td align="center">
           <label class="activity_radio">
             <input type="radio" name="activity_choice{{loop.index}}" value="nie_wykonano"
-                   {% if form_data is defined and form_data.get('activity_choice'~loop.index) == 'nie_wykonano' %}checked{% endif %}>
+                   {% if form_data is defined and form_data.activities[loop.index - 1].choice == 'nie_wykonano' %}checked{% endif %}>
           </label>
         </td>
-        <td><textarea name="q{{loop.index}}_comment">{{ form_data.get('q'~loop.index~'_comment', '') if form_data is defined else '' }}</textarea></td>
+        <td><textarea name="q{{loop.index}}_comment">{{ form_data.activities[loop.index - 1].comment if form_data is defined else '' }}</textarea></td>
       </tr>
       {% endfor %}
     </table>
@@ -179,24 +179,24 @@
       Urządzenie
       <label class="crossout">
         <input type="checkbox" name="sprawne" value="sprawne"
-               {% if form_data is defined and 'sprawne' in form_data %}checked{% endif %}>sprawne
+               {% if form_data is defined and form_data.get('operational') == false %}checked{% endif %}>sprawne
       </label>
       /
       <label class="crossout">
         <input type="checkbox" name="niesprawne" value="niesprawne"
-               {% if form_data is defined and 'niesprawne' in form_data %}checked{% endif %}>niesprawne
+               {% if form_data is defined and form_data.get('non_operational') == false %}checked{% endif %}>niesprawne
       </label>
       technicznie.
       <br>
       Urządzenie
       <label class="crossout">
         <input type="checkbox" name="dopuszczone" value="dopuszczone"
-               {% if form_data is defined and 'dopuszczone' in form_data %}checked{% endif %}>dopuszczone
+               {% if form_data is defined and form_data.get('allowed') == false %}checked{% endif %}>dopuszczone
       </label>
       /
       <label class="crossout">
         <input type="checkbox" name="niedopuszczone" value="niedopuszczone"
-               {% if form_data is defined and 'niedopuszczone' in form_data %}checked{% endif %}>niedopuszczone
+               {% if form_data is defined and form_data.get('not_allowed') == false %}checked{% endif %}>niedopuszczone
       </label>
       do dalszej eksploatacji poza poniższymi usterkami.
     </p>
@@ -205,7 +205,7 @@
     <label for="uwagi">
     Uwagi / Usterki / Zalecenia:
     </label>
-    <textarea name="uwagi" id="uwagi" rows="4" style="width: 100%;">{{ form_data.get('uwagi', '') if form_data is defined else '' }}</textarea>
+    <textarea name="uwagi" id="uwagi" rows="4" style="width: 100%;">{{ form_data.get('remarks', '') if form_data is defined else '' }}</textarea>
     </p>
 
     <table>
