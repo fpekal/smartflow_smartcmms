@@ -12,6 +12,7 @@ import sys
 import uuid
 import psycopg2
 import psycopg2.extras
+import hashlib
 from datetime import datetime
 from api_reports import api_reports
 from email_send import send_email
@@ -456,11 +457,31 @@ def upload_protocols():
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
     
-    filename = secure_filename(file.filename)
 
-    # TODO
-    
-    return jsonify({'message': 'File uploaded successfully'}), 200
+    with tempfile.NamedTemporaryFile(mode="wb") as tmp_file:
+        tmp_file.write(file.read())
+        process_result = subprocess.run(["./baza/surveys_to_json", tmp_file.name], check=True, capture_output=True, timeout=30)
+        protocol = json.loads(process_result.stdout)[0]
+        id = hashlib.sha256(process_result.stdout).hexdigest()[:16]
+        fields = json.dumps({"activities": protocol['activities']})
+        print(protocol)
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            INSERT INTO protocols (id, name, author_id, state, fields)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (id, protocol['name'], 1, 1, fields))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({
+            'success': True,
+            'message': 'Protocol created successfully',
+        }), 201
 
 
 @app.route("/")
