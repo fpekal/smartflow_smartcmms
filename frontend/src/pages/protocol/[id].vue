@@ -164,20 +164,12 @@
     }
 
     try {
-      // Jakaś implementacja chata, czekam na API
-      // await api.sendProtocolEmail({
-      //   email: email.value,
-      //   protocolData: {
-      //     form: form.value,
-      //     protocolMeta: {
-      //       name: protocol.value.name,
-      //       author: protocol.value.author_name
-      //     },
-      //     signature: signatureDataUrl.value
-      //   }
-      // });
-      alert('TODO');
-      alert('Wysłano e-mail z protokołem.');
+      await api.sendEmail(
+        email.value,
+        id,
+        form.value,
+        signatureDataUrl.value
+      )
     } catch (error) {
       console.error(error);
       alert('Błąd podczas wysyłania e-maila.');

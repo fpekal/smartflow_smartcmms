@@ -8,6 +8,7 @@ import tempfile
 import os
 import subprocess
 import time
+import sys
 import uuid
 import psycopg2
 import psycopg2.extras
@@ -359,7 +360,7 @@ def get_forms():
     return forms
 
 
-def generate_pdf(form_idx) -> str | None:
+def generate_pdf(form_idx, form_data) -> str | None:
     pdf_filename = f"form_{form_idx}_{uuid.uuid4().hex}.pdf"
     pdf_path = os.path.join('/tmp/', pdf_filename)
 
@@ -377,7 +378,7 @@ def generate_pdf(form_idx) -> str | None:
         title=form['name'],
         activities=form['activities'],
         print_mode=True,
-        form_data=request.form
+        form_data=form_data
     )
 
     with open(temp_html_path, 'w', encoding='utf-8') as f:
@@ -400,7 +401,7 @@ def generate_pdf(form_idx) -> str | None:
 
 @app.route("/print_pdf/<form_idx>", methods=['POST', 'GET'])
 def print_pdf(form_idx):
-    pdf_path = generate_pdf(form_idx)
+    pdf_path = generate_pdf(form_idx, request.form)
 
     if pdf_path is None:
         return "Protocol not found", 404
@@ -413,10 +414,14 @@ def print_pdf(form_idx):
         return "Failed to generate PDF", 500
 
 
-# Wymagane pola w jsonie: {"recipient": mail_odbiorcy}
+# Przyjmowany JSON:
+# {
+#   "recitipent": mail do kogo wysłać,
+#   "form_data": ten sam form_data, co wchodzi do jinja
+# }
 @app.route("/send_email/<form_idx>", methods=['POST'])
 def send_email_protocol(form_idx):
-    pdf_path = generate_pdf(form_idx)
+    pdf_path = generate_pdf(form_idx, request.get_json()['form_data'])
 
     if pdf_path is None:
         return "Protocol not found", 404
