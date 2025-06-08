@@ -433,7 +433,7 @@ def upload_protocols():
         tmp_file.write(file.read())
         process_result = subprocess.run(["./baza/surveys_to_json", tmp_file.name], check=True, capture_output=True, timeout=30)
         protocol = json.loads(process_result.stdout)[0]
-        id = re.search(r"(\d+(\.\d+)*)", protocol['name']).group(0) # Regex szuka w nazwie pliku stringa w stylu "1.2.3" i go zwraca
+        id = re.search(r"(\d+(\.\d+)*)", protocol['name']).group(0) # Regex szuka w nazwie protokołu stringa w stylu "1.2.3" i go zwraca
         fields = json.dumps({"activities": protocol['activities']})
         print(protocol)
 
