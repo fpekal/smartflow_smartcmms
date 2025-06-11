@@ -111,7 +111,17 @@
 
         <label style="display: block; margin-top: 15px;">Uwagi / Usterki / Zalecenia</label>
         <v-textarea v-model="form.remarks" />
-        <SignaturePad v-model="signatureDataUrl"/>
+
+        <div class="signature-row" no-generate>
+          <div class="signature-block" :ref="(el) => {signatureWidth = el.offsetWidth}">
+            <p><strong>Wykonał:</strong></p>
+            <SignaturePad v-model="signatureDataUrl" :width="signatureWidth"/>
+          </div>
+          <div class="signature-block">
+            <p><strong>Odebrał:</strong></p>
+            <SignaturePad v-model="receiverSignatureDataUrl" :width="signatureWidth" />
+          </div>
+        </div>
 
         <v-btn type="submit" class="submitButton" no-generate>Generuj PDF</v-btn>
       </form>
@@ -133,7 +143,8 @@
   const id = route.params.id
   const protocol = ref(null)
   const loading = ref(true)
-  const signatureDataUrl = ref(null)
+  const signatureDataUrl = ref(null)    
+  let signatureWidth = ref(400)
 
   const form = ref({
     building: '',
@@ -150,6 +161,8 @@
     not_allowed: false,
     remarks: ''
   })
+
+  const receiverSignatureDataUrl = ref(null)
 
   onMounted(async () => {
     try {
@@ -177,7 +190,6 @@
     const clone = elementToPrint.cloneNode(true);
     console.log(clone.querySelectorAll('[no-generate]'));
     clone.querySelectorAll('[no-generate]').forEach(item => item.parentNode.removeChild(item))
-    // clone.removeChild(clone.querySelectorAll('[no-generate]'));
 
     let txtareas = clone.querySelectorAll('textarea');
     txtareas.forEach((a) => {
@@ -241,7 +253,7 @@
           </div>
           <div>
             <p><strong>Odebrał:</strong></p>
-            <p>............................</p>
+            ${receiverSignatureDataUrl.value ? `<img src="${receiverSignatureDataUrl.value}" style="max-height: 100px; border: 1px solid #ccc;" />` : '<p>............................</p>'}
           </div>
         </div>
       </div>
@@ -327,5 +339,24 @@
   .submitButton:hover {
     background-color: var(--arsdeepblue);
   }
-  </style>
+
+  .signature-block canvas {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto;
+    border: 1px solid #866c6c;
+  }
+
+  .signature-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    width: 100%;
+  }
+
+  .signature-block {
+    flex: 0 0 48%;
+    max-width: 48%;
+  }
+</style>
 
