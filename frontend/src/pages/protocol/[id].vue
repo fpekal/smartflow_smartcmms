@@ -1,6 +1,8 @@
 <template>
     <Header />
 
+    <Loading v-if="isLoading"></Loading>
+
     <div v-if="protocol" class="protocol">
       <h1>{{ protocol.name }}</h1>
       <p>Autor: {{ protocol.author_name }}</p>
