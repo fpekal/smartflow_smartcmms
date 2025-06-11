@@ -13,7 +13,7 @@
         @touchmove.prevent="draw"
         @touchend.prevent="stopDrawing"
       ></canvas>
-      <button type="button" @click="clearCanvas" no-generate>Clear</button>
+      <button type="button" class="clear-button" @click="clearCanvas" no-generate>Wyczyść</button>
     </div>
   </template>
   
@@ -100,6 +100,22 @@
     border: 1px solid #ccc;
     touch-action: none;
     cursor: crosshair;
+  }
+
+  .clear-button {
+    margin-top: 10px;
+    background-color: var(--lightlightgray);
+    border: none;
+    color: black;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+
+  .clear-button:hover {
+    background-color: var(--lightgray);
   }
   </style>
   
