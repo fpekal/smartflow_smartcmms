@@ -113,7 +113,7 @@
         <v-textarea v-model="form.remarks" />
 
         <div class="signature-row" no-generate>
-          <div class="signature-block" :ref="(el) => {signatureWidth = el.offsetWidth}">
+          <div class="signature-block" :ref="(el) =gi> {if(el) {signatureWidth = el.offsetWidth}}">
             <p><strong>Wykonał:</strong></p>
             <SignaturePad v-model="signatureDataUrl" :width="signatureWidth"/>
           </div>
