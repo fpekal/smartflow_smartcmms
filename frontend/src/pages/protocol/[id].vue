@@ -182,7 +182,8 @@
         email.value,
         id,
         form.value,
-        signatureDataUrl.value
+        signatureDataUrl.value,
+        receiverSignatureDataUrl.value
       )
     } catch (error) {
       console.error(error);

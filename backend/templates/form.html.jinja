@@ -235,7 +235,17 @@
         </tr>
       </tbody>
     </table>
-		<img src="{{ form_data.signature }}"></img>
+
+		<div style="display: flex; justify-content: space-between; margin-top: 10px;">
+			<div style="display: flex; flex-direction: column;">
+				Wykonał:
+				<img src="{{ form_data.signature }}" style="width: 100%; height: 100%" />
+			</div>
+			<div style="display: flex; flex-direction: column;">
+				Odebrał:
+				<img src="{{ form_data.receiverSignature }}" style="width: 100%; height: 100%" />
+			</div>
+		</div>
 
     {% if print_mode is defined and print_mode %}
     {# No buttons in print mode #}
