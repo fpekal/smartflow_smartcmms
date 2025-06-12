@@ -1,5 +1,7 @@
 <template>
     <Header></Header>
+
+    <Loading v-if="isLoading"></Loading>
     
     <div class="buttons-div">
         <RouterLink to="/create-protocol">
@@ -21,8 +23,6 @@
             <v-btn class="protocol-button">{{ p.name }}</v-btn>
         </RouterLink>
     </div>
-
-    
 </template>
 
 <script setup>

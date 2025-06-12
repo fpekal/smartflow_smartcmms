@@ -1,5 +1,8 @@
 <template>
     <Header></Header>
+
+    <Loading v-if="isLoading"></Loading>
+
     <div class="container">
       <h1>Nowy Protokół</h1>
   
@@ -40,7 +43,6 @@
         <p>{{ error }}</p>
       </div>
     </div>
-    <Loading v-if="isLoading"></Loading>
   </template>
   
   <script setup>

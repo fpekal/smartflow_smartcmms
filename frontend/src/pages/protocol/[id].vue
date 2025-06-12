@@ -1,6 +1,8 @@
 <template>
     <Header />
 
+    <Loading v-if="isLoading"></Loading>
+
     <div v-if="protocol" class="protocol">
       <h1>{{ protocol.name }}</h1>
       <p>Autor: {{ protocol.author_name }}</p>
@@ -111,7 +113,17 @@
 
         <label style="display: block; margin-top: 15px;">Uwagi / Usterki / Zalecenia</label>
         <v-textarea v-model="form.remarks" />
-        <SignaturePad v-model="signatureDataUrl"/>
+
+        <div class="signature-row" no-generate>
+          <div class="signature-block" :ref="(el) => {if(el) {signatureWidth = el.offsetWidth}}">
+            <p><strong>Wykonał:</strong></p>
+            <SignaturePad v-model="signatureDataUrl" :width="signatureWidth"/>
+          </div>
+          <div class="signature-block">
+            <p><strong>Odebrał:</strong></p>
+            <SignaturePad v-model="receiverSignatureDataUrl" :width="signatureWidth" />
+          </div>
+        </div>
 
         <label style="display: block; margin-top: 15px;">Adres e-mail do wysyłki PDF:</label>
         <input v-model="email" type="email" placeholder="np. jan.kowalski@example.com" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
@@ -138,6 +150,8 @@
   const protocol = ref(null)
   const loading = ref(true)
   const signatureDataUrl = ref(null)
+  const receiverSignatureDataUrl = ref(null)
+  let signatureWidth = ref(400)
 
   const form = ref({
     building: '',
@@ -176,6 +190,7 @@
     }
   }
 
+
   onMounted(async () => {
     try {
       const res = await api.getProtocol(id)
@@ -202,7 +217,6 @@
     const clone = elementToPrint.cloneNode(true);
     console.log(clone.querySelectorAll('[no-generate]'));
     clone.querySelectorAll('[no-generate]').forEach(item => item.parentNode.removeChild(item))
-    // clone.removeChild(clone.querySelectorAll('[no-generate]'));
 
     let txtareas = clone.querySelectorAll('textarea');
     txtareas.forEach((a) => {
@@ -266,7 +280,7 @@
           </div>
           <div>
             <p><strong>Odebrał:</strong></p>
-            <p>............................</p>
+            ${receiverSignatureDataUrl.value ? `<img src="${receiverSignatureDataUrl.value}" style="max-height: 100px; border: 1px solid #ccc;" />` : '<p>............................</p>'}
           </div>
         </div>
       </div>
@@ -282,6 +296,7 @@
   <style scoped>
   .protocol {
     margin-top: 15px;
+    padding: 10px;
   }
 
   table {
@@ -294,6 +309,7 @@
   td, th {
     border: 1px solid #ccc;
     text-align: left;
+    padding: 6px;
   }
 
   ol {
@@ -312,27 +328,18 @@
   input[type="text"], input[type="date"], select {
     width: 100%;
     color: black;
+    padding: 6px;
+    box-sizing: border-box;
   }
 
-  select {
-    width: 100%;
-  }
-
-  table.service-activities {
-    background-color: white;
-  }
-
-  table.service-activities td,
-  table.service-activities th {
-    background-color: white;
-  }
-
-  .comment-text {
+  textarea, .comment-text {
     color: black;
     width: 100%;
     border: 1px solid #ccc;
     font-size: 14px;
     line-height: 1.5;
+    padding: 6px;
+    box-sizing: border-box;
   }
 
   .submitButton {
@@ -344,7 +351,7 @@
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
-    margin: 4px 2px;
+    margin: 10px 0;
     cursor: pointer;
     border-radius: 4px;
   }
@@ -352,5 +359,50 @@
   .submitButton:hover {
     background-color: var(--arsdeepblue);
   }
-  </style>
+
+  .signature-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    width: 100%;
+    margin-top: 20px;
+  }
+
+  .signature-block {
+    flex: 0 0 48%;
+    max-width: 48%;
+  }
+
+  .signature-block canvas {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto;
+    border: 1px solid #866c6c;
+  }
+
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .signature-row {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .signature-block {
+      max-width: 100%;
+      flex: 1 1 100%;
+    }
+
+    .submitButton {
+      width: 100%;
+    }
+
+    table td, table th {
+      font-size: 14px;
+    }
+
+    input[type="text"], input[type="date"], select, textarea {
+      font-size: 16px;
+    }
+  }
+</style>
 
