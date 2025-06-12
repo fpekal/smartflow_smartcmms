@@ -351,7 +351,7 @@
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
-    margin: 10px 0;
+    margin: 10px;
     cursor: pointer;
     border-radius: 4px;
   }
