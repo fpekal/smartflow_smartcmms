@@ -427,7 +427,10 @@ def send_email_protocol(form_idx):
     if pdf_path is None:
         return "Protocol not found", 404
 
-    send_email(os.environ.get('EMAIL_EMAIL', ''), os.environ.get('EMAIL_TOKEN', ''), request.get_json()['recipient'], "Protokół", "", pdf_path)
+    for mail in request.get_json()['recipient'].split(','):
+        mail = mail.strip()
+        send_email(os.environ.get('EMAIL_EMAIL', ''), os.environ.get('EMAIL_TOKEN', ''), mail, "Protokół", "", pdf_path)
+
 
     # Tutaj pewnie przydałoby się jakieś wykrywanie czy udało się wysłać maila, idk
 
