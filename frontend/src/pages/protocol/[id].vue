@@ -125,6 +125,10 @@
           </div>
         </div>
 
+        <label style="display: block; margin-top: 15px;">Adresy e-mail do wysyłki PDF:</label>
+        <input v-model="email" type="email" placeholder="np. jan.kowalski@example.com, piotr.nowak@example.com" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
+
+        <v-btn @click="sendEmail" class="submitButton" no-generate>Wyślij</v-btn>
         <v-btn type="submit" class="submitButton" no-generate>Generuj PDF</v-btn>
       </form>
 
@@ -145,7 +149,8 @@
   const id = route.params.id
   const protocol = ref(null)
   const loading = ref(true)
-  const signatureDataUrl = ref(null)    
+  const signatureDataUrl = ref(null)
+  const receiverSignatureDataUrl = ref(null)
   let signatureWidth = ref(400)
 
   const form = ref({
@@ -164,7 +169,28 @@
     remarks: ''
   })
 
-  const receiverSignatureDataUrl = ref(null)
+  const email = ref('')
+
+  const sendEmail = async () => {
+    if (!email.value || !email.value.includes('@')) {
+      alert('Wprowadź poprawny adres e-mail.');
+      return;
+    }
+
+    try {
+      await api.sendEmail(
+        email.value,
+        id,
+        form.value,
+        signatureDataUrl.value,
+        receiverSignatureDataUrl.value
+      )
+    } catch (error) {
+      console.error(error);
+      alert('Błąd podczas wysyłania e-maila.');
+    }
+  }
+
 
   onMounted(async () => {
     try {
@@ -326,7 +352,7 @@
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
-    margin: 10px 0;
+    margin: 10px;
     cursor: pointer;
     border-radius: 4px;
   }

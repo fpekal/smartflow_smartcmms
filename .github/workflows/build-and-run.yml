@@ -36,6 +36,8 @@ jobs:
           echo "MONGO_USER=${{ secrets.MONGO_USER }}" >> .env
           echo "MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}" >> .env
           echo "BACKEND_URL=${{ secrets.BACKEND_URL }}" >> .env
+          echo "EMAIL_EMAIL=${{ secrets.EMAIL_EMAIL }}" >> .env
+          echo "EMAIL_TOKEN=${{ secrets.EMAIL_TOKEN }}" >> .env
       - name: Run docker compose
         run: |
           docker compose down
