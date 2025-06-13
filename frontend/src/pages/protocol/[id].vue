@@ -125,8 +125,8 @@
           </div>
         </div>
 
-        <label style="display: block; margin-top: 15px;">Adres e-mail do wysyłki PDF:</label>
-        <input v-model="email" type="email" placeholder="np. jan.kowalski@example.com" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
+        <label style="display: block; margin-top: 15px;">Adresy e-mail do wysyłki PDF:</label>
+        <input v-model="email" type="email" placeholder="np. jan.kowalski@example.com, piotr.nowak@example.com" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
 
         <v-btn @click="sendEmail" class="submitButton" no-generate>Wyślij</v-btn>
         <v-btn type="submit" class="submitButton" no-generate>Generuj PDF</v-btn>
