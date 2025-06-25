@@ -9,12 +9,14 @@ import os
 import subprocess
 import re
 import time
+import sys
 import uuid
 import psycopg2
 import psycopg2.extras
 import hashlib
 from datetime import datetime
 from api_reports import api_reports
+from email_send import send_email
 
 
 app = Flask(__name__)
@@ -360,8 +362,7 @@ def get_forms():
     return forms
 
 
-@app.route("/print_pdf/<form_idx>", methods=['POST', 'GET'])
-def print_pdf(form_idx):
+def generate_pdf(form_idx, form_data) -> str | None:
     pdf_filename = f"form_{form_idx}_{uuid.uuid4().hex}.pdf"
     pdf_path = os.path.join('/tmp/', pdf_filename)
 
@@ -371,7 +372,7 @@ def print_pdf(form_idx):
     form = next((f for f in forms if str(f['id']) == str(form_idx)), None)
     
     if not form:
-        return "Protocol not found", 404
+        return None
 
     rendered_html = render_template(
         "form.html.jinja",
@@ -379,7 +380,7 @@ def print_pdf(form_idx):
         title=form['name'],
         activities=form['activities'],
         print_mode=True,
-        form_data=request.form
+        form_data=form_data
     )
 
     with open(temp_html_path, 'w', encoding='utf-8') as f:
@@ -397,12 +398,44 @@ def print_pdf(form_idx):
 
     time.sleep(1)
 
+    return pdf_path
+
+
+@app.route("/print_pdf/<form_idx>", methods=['POST', 'GET'])
+def print_pdf(form_idx):
+    pdf_path = generate_pdf(form_idx, request.form)
+
+    if pdf_path is None:
+        return "Protocol not found", 404
+
     if os.path.exists(pdf_path):
         return send_file(pdf_path,
                          download_name=f"form_{form_idx}.pdf",
                          as_attachment=True)
     else:
         return "Failed to generate PDF", 500
+
+
+# Przyjmowany JSON:
+# {
+#   "recitipent": mail do kogo wysłać,
+#   "form_data": ten sam form_data, co wchodzi do jinja
+# }
+@app.route("/send_email/<form_idx>", methods=['POST'])
+def send_email_protocol(form_idx):
+    pdf_path = generate_pdf(form_idx, request.get_json()['form_data'])
+
+    if pdf_path is None:
+        return "Protocol not found", 404
+
+    for mail in request.get_json()['recipient'].split(','):
+        mail = mail.strip()
+        send_email(os.environ.get('EMAIL_EMAIL', ''), os.environ.get('EMAIL_TOKEN', ''), mail, "Protokół", "", pdf_path)
+
+
+    # Tutaj pewnie przydałoby się jakieś wykrywanie czy udało się wysłać maila, idk
+
+    return jsonify({'message': 'Email sent'}), 200
 
 
 @app.route("/form/<form_idx>")

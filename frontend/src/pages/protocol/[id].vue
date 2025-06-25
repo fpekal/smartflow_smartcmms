@@ -125,8 +125,8 @@
           </div>
         </div>
 
-        <label style="display: block; margin-top: 15px;">Adres e-mail do wysyłki PDF:</label>
-        <input v-model="email" type="email" placeholder="np. jan.kowalski@example.com" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
+        <label style="display: block; margin-top: 15px;">Adresy e-mail do wysyłki PDF:</label>
+        <input v-model="email" type="email" placeholder="np. jan.kowalski@example.com, piotr.nowak@example.com" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
 
         <v-btn @click="sendEmail" class="submitButton" no-generate>Wyślij</v-btn>
         <v-btn type="submit" class="submitButton" no-generate>Generuj PDF</v-btn>
@@ -150,6 +150,7 @@
   const protocol = ref(null)
   const loading = ref(true)
   const signatureDataUrl = ref(null)
+  const receiverSignatureDataUrl = ref(null)
   let signatureWidth = ref(400)
 
   const form = ref({
@@ -168,7 +169,6 @@
     remarks: ''
   })
 
-  const receiverSignatureDataUrl = ref(null)
   const email = ref('')
 
   const sendEmail = async () => {
@@ -178,20 +178,13 @@
     }
 
     try {
-      // Jakaś implementacja chata, czekam na API
-      // await api.sendProtocolEmail({
-      //   email: email.value,
-      //   protocolData: {
-      //     form: form.value,
-      //     protocolMeta: {
-      //       name: protocol.value.name,
-      //       author: protocol.value.author_name
-      //     },
-      //     signature: signatureDataUrl.value
-      //   }
-      // });
-      alert('TODO');
-      alert('Wysłano e-mail z protokołem.');
+      await api.sendEmail(
+        email.value,
+        id,
+        form.value,
+        signatureDataUrl.value,
+        receiverSignatureDataUrl.value
+      )
     } catch (error) {
       console.error(error);
       alert('Błąd podczas wysyłania e-maila.');
@@ -358,7 +351,7 @@
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
-    margin: 10px 0;
+    margin: 10px;
     cursor: pointer;
     border-radius: 4px;
   }

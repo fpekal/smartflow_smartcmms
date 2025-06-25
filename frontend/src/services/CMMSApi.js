@@ -18,6 +18,23 @@ class CMMSApi {
         return this.fetch('/upload-protocols', 'POST', formData);
     }
 
+    async sendEmail(recipient, id, formData, signature, receiverSignature) {
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                recipient: recipient,
+                form_data: { ...formData, signature: signature, receiverSignature: receiverSignature }
+            })
+        }
+
+        let response = await fetch(this.api_url + '/send_email/' + id, requestOptions);
+        let json = await response.json();
+        return json;
+    }
+
     async createProtocol(protocol) {
         const requestOptions = {
             method: 'POST',
